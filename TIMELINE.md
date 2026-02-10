@@ -28,7 +28,7 @@
 - ✅ **Dependency Audit**: 모든 서브 프로젝트의 의존성 설치 및 실행 환경 검증 완료 / Verified dependency installation and runtime for all projects
 - ✅ **Monorepo deploy.yml**: 4개 프로젝트 각각의 3대 OS 바이너리 및 도커 이미지 자동 배포 최적화 / Optimized deploy.yml for individual 3-OS binaries and Docker images
 - ✅ **Full Archive**: 프로젝트 전체 압축본 자동 릴리스 기능 추가 / Added automated full project archive feature
-- ✅ **New Tool**: 프로젝트 템플릿 자동 생성기 (JSP용) 구현 완료 / Implemented Project Template Generator for JSP
+- ✅ **Universal Scaffolder**: 프로젝트 템플릿 자동 생성기를 JSP 외 Python, C, Node.js, Web 5종으로 확장 완료 / Expanded Project Template Generator to 5 types including Python, C, Node.js, and Web
 
 ---
 
