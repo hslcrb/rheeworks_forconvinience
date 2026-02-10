@@ -11,8 +11,64 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 #include <pthread.h>
 #include "cJSON.h"
+
+// Random greeting phrases for start screen
+const char *greetings[] = {
+    "How are you?",
+    "What's on your mind?",
+    "Ready to learn something new?",
+    "Ask me anything!",
+    "Let's explore together.",
+    "What would you like to know?",
+    "Curious about something?",
+    "How can I help you today?",
+    "Let's get started!",
+    "What are you studying?",
+    "Need help with homework?",
+    "Let's solve a problem!",
+    "What's your question?",
+    "Think. Ask. Learn.",
+    "Knowledge awaits you.",
+    "Let's dive in!",
+    "What brings you here?",
+    "Ready when you are.",
+    "Let's figure it out together.",
+    "Got a tough question?",
+    "I'm here to help.",
+    "Let's make today productive.",
+    "What topic interests you?",
+    "Fire away!",
+    "Challenge me with a question.",
+    "Learning never stops.",
+    "Stay curious, stay sharp.",
+    "One question at a time.",
+    "Your study buddy is ready.",
+    "Let's crack this together.",
+    "No question is too small.",
+    "Explore. Discover. Grow.",
+    "What shall we learn today?",
+    "Tell me what you need.",
+    "Stuck on something?",
+    "Let me help you out.",
+    "Wisdom starts with a question.",
+    "Every expert was once a beginner.",
+    "Keep asking, keep growing.",
+    "Your journey starts here.",
+    "Think big, ask bigger.",
+    "Let's build understanding.",
+    "Dare to be curious.",
+    "Questions are the answer.",
+    "Unlock your potential.",
+    "Let's make progress.",
+    "What's the next challenge?",
+    "I'm all ears.",
+    "Bring it on!",
+    "The world is your classroom."
+};
+#define NUM_GREETINGS 50
 
 // API Configuration
 #define MISTRAL_API_KEY "OBfwuYKEEUFvjh5bLt18XOcVIpTYFHVQ"
@@ -576,6 +632,7 @@ gboolean pulse_logo(gpointer user_data) {
 }
 
 int main(int argc, char *argv[]) {
+    srand(time(NULL));
     gtk_init(&argc, &argv);
 
     main_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -613,7 +670,9 @@ int main(int argc, char *argv[]) {
     gtk_label_set_justify(GTK_LABEL(title_label), GTK_JUSTIFY_CENTER);
     gtk_style_context_add_class(gtk_widget_get_style_context(title_label), "title");
     
-    GtkWidget *subtitle_label = gtk_label_new("Your Intelligent Companion\nPowered by Advanced AI");
+    // Random greeting subtitle
+    const char *greeting = greetings[rand() % NUM_GREETINGS];
+    GtkWidget *subtitle_label = gtk_label_new(greeting);
     gtk_style_context_add_class(gtk_widget_get_style_context(subtitle_label), "subtitle");
     gtk_label_set_justify(GTK_LABEL(subtitle_label), GTK_JUSTIFY_CENTER);
 
