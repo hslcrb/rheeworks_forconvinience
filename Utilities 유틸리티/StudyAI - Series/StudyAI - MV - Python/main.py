@@ -276,6 +276,13 @@ class HangulAutomata:
     def __init__(self):
         self.reset()
 
+    def reset(self):
+        """Initializes automata state / 오토마타 상태 초기화"""
+        self.cho = -1
+        self.jung = -1
+        self.jong = -1
+        self.buffer = ""
+
     def decompose(self, char):
         """
         Decomposes a finished Hangul character into Jamo indices.
@@ -620,7 +627,12 @@ class StudyAITerminal(QMainWindow):
         
         # UI language based on locale / 로캘 기반 UI 언어
         try:
-            sys_lang = locale.getdefaultlocale()[0]
+            # sys_lang = locale.getdefaultlocale()[0] # Deprecated
+            sys_lang, _ = locale.getlocale()
+            if not sys_lang:
+                # setlocale often needs to be called once to populate getlocale
+                locale.setlocale(locale.LC_ALL, "")
+                sys_lang, _ = locale.getlocale()
             self.ui_lang = "ko" if sys_lang and "ko" in sys_lang.lower() else "en"
         except:
             self.ui_lang = "en"
