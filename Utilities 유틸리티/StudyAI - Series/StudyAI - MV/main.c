@@ -592,24 +592,17 @@ int main(int argc, char *argv[]) {
     gtk_widget_set_valign(start_vbox, GTK_ALIGN_CENTER);
     gtk_widget_set_halign(start_vbox, GTK_ALIGN_CENTER);
     
-    // Title with gradient background box
-    GtkWidget *title_box = gtk_event_box_new();
+    // Title - plain text, no background box
     GtkWidget *title_label = gtk_label_new(NULL);
     gtk_label_set_markup(GTK_LABEL(title_label), "<b>Study\nAI</b>");
     gtk_label_set_justify(GTK_LABEL(title_label), GTK_JUSTIFY_CENTER);
-    gtk_container_add(GTK_CONTAINER(title_box), title_label);
-    
-    // Apply same style as avatar
-    GtkStyleContext *title_context = gtk_widget_get_style_context(title_label);
-    gtk_style_context_add_class(title_context, "avatar-text");
-    gtk_widget_set_size_request(title_box, 120, 120);
     gtk_style_context_add_class(gtk_widget_get_style_context(title_label), "title");
     
     GtkWidget *subtitle_label = gtk_label_new("Your Intelligent Companion\nPowered by Advanced AI");
     gtk_style_context_add_class(gtk_widget_get_style_context(subtitle_label), "subtitle");
     gtk_label_set_justify(GTK_LABEL(subtitle_label), GTK_JUSTIFY_CENTER);
 
-    gtk_box_pack_start(GTK_BOX(start_vbox), title_box, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(start_vbox), title_label, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(start_vbox), subtitle_label, FALSE, FALSE, 0);
 
     gtk_stack_add_named(GTK_STACK(stack), start_vbox, "start_view");
