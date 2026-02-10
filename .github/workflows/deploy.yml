@@ -173,6 +173,9 @@ jobs:
           RUN apt-get update && apt-get install -y \
               python3-tk \
               libx11-6 \
+              gcc \
+              python3-dev \
+              libevdev-dev \
               && rm -rf /var/lib/apt/lists/*
           
           # Copy files from clean context / 정제된 컨텍스트에서 파일 복사
