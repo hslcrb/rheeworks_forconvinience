@@ -2,19 +2,44 @@
 <svg width="150" height="150" viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg">
     <defs>
         <linearGradient id="logoGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.9" />
-            <stop offset="100%" style="stop-color:#764ba2;stop-opacity:0.9" />
+            <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
         </linearGradient>
-        <radialGradient id="logoGrad2">
+        <linearGradient id="logoGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" style="stop-color:#f093fb;stop-opacity:1" />
             <stop offset="100%" style="stop-color:#f5576c;stop-opacity:1" />
-        </radialGradient>
+        </linearGradient>
+        <linearGradient id="logoGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#11998e;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#38ef7d;stop-opacity:1" />
+        </linearGradient>
     </defs>
+
+    <!-- Brain-like neural network design -->
     <g transform="translate(75,75)">
-        <ellipse rx="50" ry="15" transform="rotate(0)" stroke="url(#logoGrad1)" stroke-width="3" fill="none" />
-        <ellipse rx="50" ry="15" transform="rotate(60)" stroke="url(#logoGrad1)" stroke-width="3" fill="none" />
-        <ellipse rx="50" ry="15" transform="rotate(120)" stroke="url(#logoGrad1)" stroke-width="3" fill="none" />
-        <circle r="12" fill="url(#logoGrad2)" />
-        <circle r="5" fill="white" opacity="0.8" />
+        <!-- Outer circle -->
+        <circle r="60" fill="none" stroke="url(#logoGrad1)" stroke-width="3" opacity="0.3" />
+
+        <!-- Neural network nodes -->
+        <circle cx="-30" cy="-25" r="8" fill="url(#logoGrad1)" />
+        <circle cx="30" cy="-25" r="8" fill="url(#logoGrad2)" />
+        <circle cx="-35" cy="15" r="8" fill="url(#logoGrad3)" />
+        <circle cx="35" cy="15" r="8" fill="url(#logoGrad1)" />
+        <circle cx="0" cy="35" r="8" fill="url(#logoGrad2)" />
+        <circle cx="0" cy="-5" r="10" fill="url(#logoGrad3)" />
+
+        <!-- Connecting lines -->
+        <line x1="-30" y1="-25" x2="0" y2="-5" stroke="url(#logoGrad1)" stroke-width="2" opacity="0.4" />
+        <line x1="30" y1="-25" x2="0" y2="-5" stroke="url(#logoGrad2)" stroke-width="2" opacity="0.4" />
+        <line x1="0" y1="-5" x2="-35" y2="15" stroke="url(#logoGrad3)" stroke-width="2" opacity="0.4" />
+        <line x1="0" y1="-5" x2="35" y2="15" stroke="url(#logoGrad1)" stroke-width="2" opacity="0.4" />
+        <line x1="0" y1="-5" x2="0" y2="35" stroke="url(#logoGrad2)" stroke-width="2" opacity="0.4" />
+        <line x1="-35" y1="15" x2="0" y2="35" stroke="url(#logoGrad3)" stroke-width="2" opacity="0.3" />
+        <line x1="35" y1="15" x2="0" y2="35" stroke="url(#logoGrad1)" stroke-width="2" opacity="0.3" />
+
+        <!-- Central core -->
+        <circle r="15" fill="url(#logoGrad2)" />
+        <circle r="8" fill="white" opacity="0.9" />
+        <circle r="3" fill="url(#logoGrad1)" />
     </g>
 </svg>

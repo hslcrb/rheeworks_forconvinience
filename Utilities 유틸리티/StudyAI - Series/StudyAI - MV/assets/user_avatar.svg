@@ -6,7 +6,12 @@
             <stop offset="100%" style="stop-color:#38ef7d;stop-opacity:1" />
         </linearGradient>
     </defs>
+    <!-- Outer circle -->
     <circle cx="20" cy="20" r="19" fill="url(#userGrad)" />
-    <circle cx="20" cy="15" r="6" fill="white" />
-    <path d="M 8 32 Q 20 28 32 32 L 32 36 Q 20 32 8 36 Z" fill="white" />
+    <!-- User head - simple geometric -->
+    <circle cx="20" cy="14" r="7" fill="white" opacity="0.95" />
+    <!-- Body - geometric shield shape -->
+    <path d="M 20 22 L 10 26 Q 10 34 20 37 Q 30 34 30 26 Z" fill="white" opacity="0.95" />
+    <!-- Accent dots -->
+    <circle cx="20" cy="14" r="2" fill="url(#userGrad)" opacity="0.3" />
 </svg>

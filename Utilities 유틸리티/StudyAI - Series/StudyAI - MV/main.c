@@ -335,10 +335,19 @@ void *api_thread_func(void *data) {
         cJSON_AddStringToObject(root, "model", MODEL_NAME);
         cJSON_AddBoolToObject(root, "stream", cJSON_True);
         cJSON *messages = cJSON_CreateArray();
-        cJSON *msg = cJSON_CreateObject();
-        cJSON_AddStringToObject(msg, "role", "user");
-        cJSON_AddStringToObject(msg, "content", tdata->user_input);
-        cJSON_AddItemToArray(messages, msg);
+        
+        // Add system message for concise responses
+        cJSON *system_msg = cJSON_CreateObject();
+        cJSON_AddStringToObject(system_msg, "role", "system");
+        cJSON_AddStringToObject(system_msg, "content", "Be concise and brief in your responses.");
+        cJSON_AddItemToArray(messages, system_msg);
+        
+        // Add user message
+        cJSON *user_msg = cJSON_CreateObject();
+        cJSON_AddStringToObject(user_msg, "role", "user");
+        cJSON_AddStringToObject(user_msg, "content", tdata->user_input);
+        cJSON_AddItemToArray(messages, user_msg);
+        
         cJSON_AddItemToObject(root, "messages", messages);
         
         char *json_str = cJSON_PrintUnformatted(root);
@@ -419,20 +428,20 @@ void set_theme(int dark) {
         "label.subtitle { font-size: 16px; color: rgba(255,255,255,0.7); font-weight: 300; letter-spacing: 0.5px; }";
     } else {
         css = 
-        "window { background: linear-gradient(135deg, #f5f0ff, #e8d5ff, #f0e6ff); color: #333; }"
+        "window { background: linear-gradient(135deg, #ffffff, #fafbff, #f8f9ff); color: #333; }"
         "list { background: transparent; }"
-        ".message-bubble { padding: 14px 18px; border-radius: 18px; box-shadow: 0 4px 12px rgba(118,75,162,0.15); transition: all 0.2s; }"
-        ".message-bubble:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(118,75,162,0.2); }"
-        ".user-bubble { background: linear-gradient(135deg, #b8a3e8, #9b87d6); color: white; }"
-        ".bot-bubble { background: white; color: #333; border: 1px solid rgba(118,75,162,0.15); }"
-        "entry { background: white; color: #333; border-radius: 24px; border: 1px solid rgba(118,75,162,0.2); padding: 12px 20px; font-size: 14px; }"
-        "entry:focus { border-color: #9b87d6; box-shadow: 0 0 0 3px rgba(155,135,214,0.2); }"
-        "button.send-btn { background: linear-gradient(135deg, #9b87d6, #b8a3e8); color: white; border-radius: 24px; font-weight: 600; border: none; padding: 12px 28px; transition: all 0.3s; }"
-        "button.send-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(155,135,214,0.3); }"
-        "button.action-btn { background: rgba(155,135,214,0.1); color: #764ba2; border-radius: 12px; border: 1px solid rgba(118,75,162,0.2); padding: 6px 12px; font-size: 12px; transition: all 0.2s; }"
-        "button.action-btn:hover { background: rgba(155,135,214,0.2); color: #5a3782; }"
-        "label.title { font-size: 42px; font-weight: 700; color: #764ba2; text-shadow: 0 2px 10px rgba(118,75,162,0.2); }"
-        "label.subtitle { font-size: 16px; color: rgba(118,75,162,0.7); font-weight: 300; letter-spacing: 0.5px; }";
+        ".message-bubble { padding: 14px 18px; border-radius: 18px; box-shadow: 0 4px 12px rgba(118,75,162,0.1); transition: all 0.2s; }"
+        ".message-bubble:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(118,75,162,0.15); }"
+        ".user-bubble { background: linear-gradient(135deg, #a89dd6, #8b7ec4); color: white; }"
+        ".bot-bubble { background: #ffffff; color: #333; border: 1px solid rgba(118,75,162,0.1); }"
+        "entry { background: #ffffff; color: #333; border-radius: 24px; border: 1px solid rgba(118,75,162,0.15); padding: 12px 20px; font-size: 14px; }"
+        "entry:focus { border-color: #8b7ec4; box-shadow: 0 0 0 3px rgba(139,126,196,0.15); }"
+        "button.send-btn { background: linear-gradient(135deg, #8b7ec4, #a89dd6); color: white; border-radius: 24px; font-weight: 600; border: none; padding: 12px 28px; transition: all 0.3s; }"
+        "button.send-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(139,126,196,0.25); }"
+        "button.action-btn { background: rgba(139,126,196,0.08); color: #6b5fa3; border-radius: 12px; border: 1px solid rgba(118,75,162,0.15); padding: 6px 12px; font-size: 12px; transition: all 0.2s; }"
+        "button.action-btn:hover { background: rgba(139,126,196,0.15); color: #5a4e8a; }"
+        "label.title { font-size: 42px; font-weight: 700; color: #6b5fa3; text-shadow: 0 2px 10px rgba(107,95,163,0.15); }"
+        "label.subtitle { font-size: 16px; color: rgba(107,95,163,0.65); font-weight: 300; letter-spacing: 0.5px; }";
     }
     
     gtk_css_provider_load_from_data(provider, css, -1, NULL);
