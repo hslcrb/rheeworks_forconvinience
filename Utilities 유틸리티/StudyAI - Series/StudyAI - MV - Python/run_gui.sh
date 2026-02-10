@@ -6,22 +6,32 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # 입력 방식 설정 (한글 입력 지원) / Input method setup (Korean input support)
-# PySide6 bundled Qt often conflicts with system fcitx plugin.
-# Using 'ibus' is generally more stable with PySide6's bundled ibus plugin.
+# PySide6 bundled Qt often has symbol mismatch with system fcitx-qt6 plugin.
+# We fallback to XIM (X Input Method) which fcitx/ibus both support via Xlib.
+# Also forcing LC_CTYPE to ko_KR.utf8 is crucial for IM triggering.
 
-if command -v ibus-daemon >/dev/null 2>&1; then
-    export QT_IM_MODULE=ibus
-    export XMODIFIERS="@im=ibus"
-    echo "[INFO] Using IBus for Korean input support."
-else
-    # Fallback to fcitx if ibus is not found, but warn about potential issues
-    export QT_IM_MODULE=fcitx
+export LC_CTYPE=ko_KR.UTF-8
+export LC_ALL=ko_KR.UTF-8  # Force overall locale to ensure Korean support
+export LANG=ko_KR.UTF-8
+
+if pgrep -x "fcitx" > /dev/null; then
+    export QT_IM_MODULE=xim
     export XMODIFIERS="@im=fcitx"
-    echo "[WARN] IBus not found. Falling back to fcitx (might have compatibility issues with Alt-key)."
+    echo "[INFO] Detected fcitx. Using XIM fallback for compatibility."
+elif pgrep -x "ibus-daemon" > /dev/null; then
+    export QT_IM_MODULE=xim
+    export XMODIFIERS="@im=ibus"
+    echo "[INFO] Detected IBus. Using XIM fallback for compatibility."
+else
+    # Default fallback
+    export QT_IM_MODULE=xim
+    export XMODIFIERS="@im=fcitx"
+    echo "[WARN] No active IM daemon detected (fcitx/ibus). Proceeding with XIM/fcitx settings."
 fi
 
-# Ensure system Qt plugins are NOT mixed if using bundled PySide6 plugins
-# Instead, we rely on PySide6's own plugins now.
+# Ensure we don't use the broken fcitx-qt6 plugin we copied earlier
+# (Note: main.py setup_input_method should also be cleaned up)
+
 
 # 가상환경 확인 및 생성 / Check and create virtual environment
 if [ ! -d "venv" ]; then

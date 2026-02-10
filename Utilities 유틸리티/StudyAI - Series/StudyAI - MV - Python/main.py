@@ -20,25 +20,20 @@ from datetime import datetime
 def setup_input_method():
     """
     OS 독립적 입력 방식 설정 / OS-independent input method setup.
-    Ensures Korean (한글) input works properly across Linux IM frameworks.
-    Note: PySide6 bundled Qt often has issues with system fcitx plugins due to 
-    undefined symbols (Qt_6_PRIVATE_API). IBus is generally more compatible.
+    We respect variables set in the launcher script (run_gui.sh).
     """
     if platform.system() != "Linux":
         return
     
-    # Environment variables should ideally be set in the launcher script (run_gui.sh).
-    # This is a fallback to ensure variables are set if run directly.
-    im_module = os.environ.get("QT_IM_MODULE", "").lower()
-    gtk_im = os.environ.get("GTK_IM_MODULE", "").lower()
+    # We trust the environment variables set by run_gui.sh
+    im_module = os.environ.get("QT_IM_MODULE", "")
+    xmod = os.environ.get("XMODIFIERS", "")
     
-    # Prioritize IBus for PySide6 compatibility
-    if "ibus" in im_module or "ibus" in gtk_im or not im_module:
-        os.environ["QT_IM_MODULE"] = "ibus"
-        os.environ.setdefault("XMODIFIERS", "@im=ibus")
-    elif "fcitx" in im_module or "fcitx" in gtk_im:
-        os.environ["QT_IM_MODULE"] = "fcitx"
-        os.environ.setdefault("XMODIFIERS", "@im=fcitx")
+    # If not set, provide a sensible default fallback for Linux
+    if not im_module:
+        os.environ["QT_IM_MODULE"] = "xim"
+    if not xmod:
+        os.environ["XMODIFIERS"] = "@im=fcitx"
 
 
 # Must be called BEFORE QApplication import / QApplication import 전에 호출 필수
