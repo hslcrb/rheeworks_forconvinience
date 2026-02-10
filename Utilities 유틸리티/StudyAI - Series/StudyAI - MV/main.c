@@ -19,54 +19,10 @@
 #define MISTRAL_API_URL "https://api.mistral.ai/v1/chat/completions"
 #define MODEL_NAME "mistral-small-latest"
 
-// SVG Icons (Inline)
-const char *SVG_BOT_AVATAR = 
-"<svg width='40' height='40' viewBox='0 0 40 40'>"
-"<defs>"
-"<linearGradient id='botGrad' x1='0%' y1='0%' x2='100%' y2='100%'>"
-"<stop offset='0%' style='stop-color:#667eea;stop-opacity:1'/>"
-"<stop offset='100%' style='stop-color:#764ba2;stop-opacity:1'/>"
-"</linearGradient>"
-"</defs>"
-"<circle cx='20' cy='20' r='19' fill='url(#botGrad)'/>"
-"<rect x='11' y='14' width='6' height='6' rx='1' fill='white'/>"
-"<rect x='23' y='14' width='6' height='6' rx='1' fill='white'/>"
-"<path d='M 12 26 Q 20 30 28 26' stroke='white' stroke-width='2' fill='none' stroke-linecap='round'/>"
-"</svg>";
-
-const char *SVG_USER_AVATAR = 
-"<svg width='40' height='40' viewBox='0 0 40 40'>"
-"<defs>"
-"<linearGradient id='userGrad' x1='0%' y1='0%' x2='100%' y2='100%'>"
-"<stop offset='0%' style='stop-color:#11998e;stop-opacity:1'/>"
-"<stop offset='100%' style='stop-color:#38ef7d;stop-opacity:1'/>"
-"</linearGradient>"
-"</defs>"
-"<circle cx='20' cy='20' r='19' fill='url(#userGrad)'/>"
-"<circle cx='20' cy='15' r='6' fill='white'/>"
-"<path d='M 8 32 Q 20 28 32 32 L 32 36 Q 20 32 8 36 Z' fill='white'/>"
-"</svg>";
-
-const char *SVG_LOGO = 
-"<svg width='150' height='150' viewBox='0 0 150 150'>"
-"<defs>"
-"<linearGradient id='logoGrad1' x1='0%' y1='0%' x2='100%' y2='100%'>"
-"<stop offset='0%' style='stop-color:#667eea;stop-opacity:0.9'/>"
-"<stop offset='100%' style='stop-color:#764ba2;stop-opacity:0.9'/>"
-"</linearGradient>"
-"<radialGradient id='logoGrad2'>"
-"<stop offset='0%' style='stop-color:#f093fb;stop-opacity:1'/>"
-"<stop offset='100%' style='stop-color:#f5576c;stop-opacity:1'/>"
-"</radialGradient>"
-"</defs>"
-"<g transform='translate(75,75)'>"
-"<ellipse rx='50' ry='15' transform='rotate(0)' stroke='url(#logoGrad1)' stroke-width='3' fill='none'/>"
-"<ellipse rx='50' ry='15' transform='rotate(60)' stroke='url(#logoGrad1)' stroke-width='3' fill='none'/>"
-"<ellipse rx='50' ry='15' transform='rotate(120)' stroke='url(#logoGrad1)' stroke-width='3' fill='none'/>"
-"<circle r='12' fill='url(#logoGrad2)'/>"
-"<circle r='5' fill='white' opacity='0.8'/>"
-"</g>"
-"</svg>";
+// Asset file paths
+#define ASSET_BOT_AVATAR "assets/bot_avatar.svg"
+#define ASSET_USER_AVATAR "assets/user_avatar.svg"
+#define ASSET_LOGO "assets/logo.svg"
 
 // UI Widgets
 GtkWidget *main_window;
@@ -83,6 +39,29 @@ volatile int is_streaming = 0;
 struct ThreadData {
     char *user_input;
 };
+
+// --- File Helper Functions ---
+
+char* load_file_to_string(const char *filepath) {
+    FILE *file = fopen(filepath, "r");
+    if (!file) {
+        g_warning("Failed to open file: %s", filepath);
+        return NULL;
+    }
+    
+    fseek(file, 0, SEEK_END);
+    long length = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    
+    char *content = malloc(length + 1);
+    if (content) {
+        fread(content, 1, length, file);
+        content[length] = '\0';
+    }
+    
+    fclose(file);
+    return content;
+}
 
 // --- SVG Helper Functions ---
 
@@ -239,10 +218,18 @@ size_t StreamCallback(void *contents, size_t size, size_t nmemb, void *userp) {
 
 // --- UI Components ---
 
-GtkWidget* create_svg_image(const char *svg_data, int size) {
+GtkWidget* create_svg_image(const char *svg_filepath, int size) {
+    char *svg_data = load_file_to_string(svg_filepath);
+    if (!svg_data) {
+        return gtk_image_new(); // Return empty image on error
+    }
+    
     GdkPixbuf *pixbuf = svg_to_pixbuf(svg_data, size, size);
     GtkWidget *image = gtk_image_new_from_pixbuf(pixbuf);
+    
+    free(svg_data);
     if (pixbuf) g_object_unref(pixbuf);
+    
     return image;
 }
 
@@ -266,7 +253,7 @@ GtkWidget* add_message_bubble(const char *text, int is_user) {
     gtk_widget_set_margin_top(row_box, 8);
     gtk_widget_set_margin_bottom(row_box, 8);
     
-    GtkWidget *avatar = create_svg_image(is_user ? SVG_USER_AVATAR : SVG_BOT_AVATAR, 40);
+    GtkWidget *avatar = create_svg_image(is_user ? ASSET_USER_AVATAR : ASSET_BOT_AVATAR, 40);
     
     // Content box with label and buttons
     GtkWidget *content_vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
@@ -507,7 +494,7 @@ int main(int argc, char *argv[]) {
     gtk_widget_set_valign(start_vbox, GTK_ALIGN_CENTER);
     gtk_widget_set_halign(start_vbox, GTK_ALIGN_CENTER);
     
-    GtkWidget *logo_image = create_svg_image(SVG_LOGO, 150);
+    GtkWidget *logo_image = create_svg_image(ASSET_LOGO, 150);
     g_timeout_add(50, pulse_logo, logo_image);
     
     GtkWidget *title_label = gtk_label_new("StudyAI");
