@@ -17,10 +17,12 @@ This project is a monorepo containing multiple convenience tools.
 ### 서브 프로젝트 / Sub-Projects
 
 1. **Typer-타이퍼 Series**
-   - 베이직 버전-Basic Version: 기본 가짜 타이핑 도구
-   - 포모도로 버전-Pomodoro Version: 포모도로 타이머 + 숨겨진 타이핑 도구
+   - 베이직 버전-Basic Version: 기본 가짜 타이핑 도구 (Premium UI)
+   - 포모도로 버전-Pomodoro Version: 포모도로 타이머 + 숨겨진 타이핑 도구 (Premium UI)
 
-2. **Automaker-오토메이커 Series** (개발 예정)
+2. **Automaker-오토메이커 Series**
+   - 클리커-Clicker: 프리미엄 오토 클릭커 도구
+   - 텍스트생성기-Text Generator: 프리미엄 더미 텍스트 생성 도구
 
 ## 개발 지침 / Development Guidelines
 
