@@ -1,70 +1,40 @@
-# Typer - Basic Version / 타이퍼 - 베이직 버전
+# Typer Basic Version / 타이퍼 베이직 버전
 
-**가짜 타이핑 복사 도구 / Fake Typing Copier**
+**Typer Basic**은 원천 텍스트 파일을 읽어들여 사용자가 키보드를 입력할 때마다 마치 실제 타이핑을 하듯 가짜로 텍스트를 대상 파일에 써주는 프리미엄 도구입니다.  
+**Typer Basic** is a premium tool that reads a source text file and fake-types it into a target file as the user inputs from the keyboard, simulating real typing.
 
-Rheehose (Rhee Creative) 2008-2026
+---
 
-## 개요 / Overview
+## ✨ 주요 특징 / Key Features
 
-이 프로그램은 원본 텍스트 파일에서 내용을 읽어 키보드 입력을 감지할 때마다 자동으로 대상 파일에 랜덤한 길이(1-5글자)로 복사하는 도구입니다.  
-This program reads content from a source text file and automatically copies random chunks (1-5 characters) to a target file whenever keyboard input is detected.
+- **Fake Typing Engine / 가짜 타이핑 엔진**: 입력 속도를 무작위로 조절하여 실제 타이핑처럼 보이게 합니다. / Randomizes typing speed to simulate human-like input.
+- **Premium UI**: `CustomTkinter` 기반의 세련된 다크 모드 인터페이스를 제공합니다. / Provides a sophisticated dark mode interface based on `CustomTkinter`.
+- **Easy Setup**: 원천 및 대상 파일을 선택하기만 하면 간단히 시작할 수 있습니다. / Simple start by just selecting source and target files.
 
-## 주요 기능 / Key Features
+## 🚀 시작하기 / Getting Started
 
-- 📝 **원천 텍스트 선택 / Source Text Selection**: 복사할 원본 파일 선택
-- 🎯 **대상 텍스트 선택 / Target Text Selection**: 복사될 빈 파일 선택 (반드시 비어있어야 함)
-- ⌨️ **키보드 입력 감지 / Keyboard Input Detection**: 키 입력 시 자동으로 텍스트 복사
-- 🎲 **랜덤 길이 복사 / Random Chunk Size**: 매번 1-5글자를 랜덤하게 복사
-- 🔴 **녹화 상태 표시 / Recording Status**: 실시간으로 녹화 상태 확인
+### 📦 설치 / Installation
+1. 해당 폴더로 이동합니다. / Navigate to this folder.
+2. 가상환경을 생성하고 활성화합니다. / Create and activate a virtual environment.
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate  # MacOS/Linux
+   # venv\Scripts\activate   # Windows
+   ```
+3. 필요한 패키지를 설치합니다. / Install required packages.
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-## 설치 / Installation
-
-### 1. 가상환경 생성 / Create Virtual Environment
-
-```bash
-python3 -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-```
-
-### 2. 종속성 설치 / Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-## 사용법 / Usage
-
-### 1. 프로그램 실행 / Run the Program
-
+### 🎮 실행 / Execution
 ```bash
 python main.py
 ```
 
-### 2. 파일 선택 / Select Files
-
-1. **원천텍스트 선택** 버튼 클릭 → 복사할 텍스트 파일 선택
-2. **대상텍스트 선택** 버튼 클릭 → 비어있는 새 파일 선택 (중요: 반드시 빈 파일이어야 함!)
-
-### 3. 녹화 시작 / Start Recording
-
-- **START** 버튼 클릭
-- 🔴 **REC** 상태 표시 확인
-- 이제 아무 키나 입력하면 자동으로 텍스트가 복사됩니다!
-
-### 4. 녹화 중지 / Stop Recording
-
-- **STOP** 버튼 클릭
-
-## 종속성 / Dependencies
-
-- `pynput==1.7.6`: 키보드 입력 감지 / Keyboard input detection
-- `tkinter`: GUI 프레임워크 (Python 기본 포함) / GUI framework (included in Python)
-
-## 라이선스 / License
-
-Apache License 2.0
+## 📜 라이선스 / License
+본 프로젝트는 **Apache 2.0 License**를 따릅니다.  
+This project is licensed under the **Apache 2.0 License**.
 
 ---
 
-**Rheehose (Rhee Creative) 2008-2026**  
-Website: https://rheehose.com
+**Rheehose (Rhee Creative) 2008-2026**
