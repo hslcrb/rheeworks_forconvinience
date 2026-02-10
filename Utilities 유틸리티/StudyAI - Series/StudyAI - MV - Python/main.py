@@ -43,7 +43,7 @@ setup_input_method()
 
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout,
-    QTextEdit, QLineEdit, QLabel, QHBoxLayout
+    QTextEdit, QLineEdit, QLabel, QHBoxLayout, QPushButton
 )
 from PySide6.QtCore import Qt, Signal, QObject, QTimer
 from PySide6.QtGui import QFont, QTextCursor, QColor, QPalette, QKeyEvent
@@ -871,15 +871,13 @@ class StudyAITerminal(QMainWindow):
             return
             
         elif user_input == "/trans":
-            # Detect system language / 시스템 언어 감지
-            try:
-                sys_lang = locale.getdefaultlocale()[0]
-                lang_name = "Korean" if "ko" in sys_lang.lower() else "English"
-            except:
-                lang_name = "Korean" # Default to Korean for this user
+            # Determine language based on current input mode / 현재 입력 모드에 기반하여 언어 결정
+            is_ko = self.input_field.is_hangul
+            lang_name = "Korean" if is_ko else "English"
             
             # Insert invisible system instruction / 보이지 않는 시스템 지시어 삽입
             user_input = f"[SYSTEM: PLEASE RESPOND IN {lang_name.upper()}] " + user_input
+
             # Continue to send logic
             
         # Append user message to terminal / 사용자 메시지 터미널에 추가
