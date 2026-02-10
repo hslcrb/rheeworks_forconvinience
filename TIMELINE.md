@@ -58,6 +58,17 @@
 - ✅ **Documentation Update**: 프로젝트 전반의 문서를 한영 병기 일관성에 맞춰 업데이트 완료 / Updated all project documentation for bilingual consistency
 - ✅ **Tagging**: 30 커밋 기념 v0.3.0 공식 태깅 및 배포 / Officially tagged and deployed v0.3.0 for 30+ commits milestone
 
+### [NEW: StudyAI Series] AI 채팅 애플리케이션 / AI Chat Application
+
+**By Antigravity (Gemini) / Antigravity (Gemini)에 의해**
+
+- ✅ **StudyAI - MV (C/GTK)**: Mistral AI 기반 무채색 테마 GUI 채팅 앱 구현 완료 / Implemented grayscale theme GUI chat app with Mistral AI
+- ✅ **StudyAI - MV - Python (PySide6)**: 터미널 스타일 GUI AI 채팅 앱 구현 완료 / Implemented terminal-style GUI AI chat app
+- ✅ **Conversation Memory**: 100메시지 + 32k 토큰 컨텍스트 추적 / 100 message + 32k token context tracking
+- ✅ **Streaming Indicator**: 응답 생성 중 깜빡이는 점 인디케이터 / Blinking dot indicator during streaming
+- ✅ **Adaptive Responses**: 질문 복잡도에 따른 적응형 응답 길이 시스템 / Adaptive response length based on question complexity
+- ✅ **CI/CD Integration**: 두 버전 모두 빌드 파이프라인에 통합 / Both versions integrated into build pipeline
+
 ---
 
 **Rheehose (Rhee Creative) 2008-2026**

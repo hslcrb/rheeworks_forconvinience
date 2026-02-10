@@ -80,6 +80,9 @@ jobs:
           - name: "automaker-templategen"
             path: "Utilities 유틸리티/Automaker-오토메이커 Series/프로젝트 템플릿 생성-Generate Project Templates"
             script: "main.py"
+          - name: "studyai-python"
+            path: "Utilities 유틸리티/StudyAI - Series/StudyAI - MV - Python"
+            script: "main.py"
     
     steps:
       - name: Checkout code
@@ -147,6 +150,8 @@ jobs:
             path: "Utilities 유틸리티/Automaker-오토메이커 Series/텍스트생성기-Text Generator"
           - name: "automaker-templategen"
             path: "Utilities 유틸리티/Automaker-오토메이커 Series/프로젝트 템플릿 생성-Generate Project Templates"
+          - name: "studyai-python"
+            path: "Utilities 유틸리티/StudyAI - Series/StudyAI - MV - Python"
     permissions:
       contents: read
       packages: write
@@ -287,7 +292,7 @@ jobs:
             - **Typer Series**: Basic, Pomodoro
             - **Rucia Series**: Pris (Dashboard), Lavendar (Backup), Frytesty (Tester)
             - **Automaker Series**: Clicker, Text Generator, Template Generator
-            - **StudyAI Series**: StudyAI - MV (C/GTK Chat App)
+            - **StudyAI Series**: StudyAI - MV (C/GTK Chat App), StudyAI - MV - Python (Terminal GUI)
             
             ## 🚀 실행 파일 / Binaries
             각 운영체제별 압축 파일을 다운로드하여 실행하십시오. (Windows, Linux, macOS 지원)
@@ -303,6 +308,7 @@ jobs:
             docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/automaker-clicker:latest
             docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/automaker-textgen:latest
             docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/automaker-templategen:latest
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/studyai-python:latest
             ```
             
             ---

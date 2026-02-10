@@ -60,10 +60,9 @@ Initially misunderstood the project structure as separate Git repositories for e
 69: 30. ✅ Final Verification: Cleaned dependencies and verified CLI for all 8 tools (Commit: `e041cba`) / 최종 검증: 8개 모든 도구에 대해 의존성 정리 및 CLI 검증 완료 (커밋: `e041cba`)
 
 ### Next Steps / 다음 단계
-60: 
-61: - [ ] Final user verification of the standardized launch experience / 표준화된 실행 경험에 대한 최종 사용자 검증
-62: - [ ] Prepare for v0.2.0 release after thorough testing / 철저한 테스트 후 v0.2.0 릴리즈 준비
-63: 
+
+- [ ] Final user verification of StudyAI Python Terminal GUI / StudyAI Python 터미널 GUI 최종 사용자 검증
+- [ ] Prepare for next version release / 다음 버전 릴리즈 준비
 
 ---
 

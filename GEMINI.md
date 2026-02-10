@@ -4,7 +4,7 @@
 ## 프로젝트 정보 / Project Information
 
 - **프로젝트명 / Project Name**: RheeWorks ForConvinience
-- **타입 / Type**: Monorepo (Python)
+- **타입 / Type**: Monorepo (Python, C)
 - **저작권 / Copyright**: Rheehose (Rhee Creative) 2008-2026
 - **라이선스 / License**: Apache 2.0
 - **웹사이트 / Website**: https://rheehose.com
@@ -29,6 +29,10 @@ This project is a monorepo containing multiple convenience tools.
    - 클리커-Clicker: 프리미엄 오토 클릭커 도구 (Premium UI/CLI)
    - 텍스트생성기-Text Generator: 프리미엄 더미 텍스트 생성 도구 (Premium UI/CLI)
    - 프로젝트 템플릿 생성-Generate Project Templates: 다국어 스캐폴딩 도구 (Premium UI/CLI)
+
+4. **StudyAI Series** (Path: `Utilities 유틸리티/StudyAI - Series`)
+   - StudyAI - MV: AI 채팅 앱 C/GTK 버전 (GUI, Grayscale Theme)
+   - StudyAI - MV - Python: AI 채팅 앱 Python/PySide6 터미널 스타일 GUI 버전 (Terminal-Style GUI)
 
 ## 개발 지침 / Development Guidelines
 

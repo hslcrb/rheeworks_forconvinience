@@ -1,4 +1,4 @@
-# RheeWorks ForConvinience (Python Monorepo)
+# RheeWorks ForConvinience (Python & C Monorepo)
 
 **RheeWorks ForConvinience**는 다양한 일상 편의를 위한 도구들을 포함하는 **단일 깃 저장소 기반의 모노레포(Monorepo)** 프로젝트입니다.  
 **RheeWorks ForConvinience** is a **Git-based Monorepo** project containing various tools for daily convenience.
@@ -23,6 +23,10 @@ This project is organized into the following sub-project series, each with its o
 - **[클리커-Clicker](file:///home/rheehose/문서/rheeworks_forconvinience/Utilities%20유틸리티/Automaker-오토메이커%20Series/클리커-Clicker/)**: 고성능 마우스 오토 클릭커 (GUI/CLI)
 - **[텍스트생성기-Text Generator](file:///home/rheehose/문서/rheeworks_forconvinience/Utilities%20유틸리티/Automaker-오토메이커%20Series/텍스트생성기-Text%20Generator/)**: 더미 텍스트 생성 도구 (GUI/CLI)
 - **[프로젝트 템플릿 생성-Project Template Generator](file:///home/rheehose/문서/rheeworks_forconvinience/Utilities%20유틸리티/Automaker-오토메이커%20Series/프로젝트%20템플릿%20생성-Generate%20Project%20Templates/)**: 다국어 스캐폴딩 도구 (GUI/CLI)
+
+### 4. StudyAI Series
+- **[StudyAI - MV](file:///home/rheehose/문서/rheeworks_forconvinience/Utilities%20유틸리티/StudyAI%20-%20Series/StudyAI%20-%20MV/)**: AI 채팅 앱 C/GTK 버전 (Grayscale GUI)
+- **[StudyAI - MV - Python](file:///home/rheehose/문서/rheeworks_forconvinience/Utilities%20유틸리티/StudyAI%20-%20Series/StudyAI%20-%20MV%20-%20Python/)**: AI 채팅 앱 PySide6 터미널 스타일 GUI 버전 (Terminal-Style GUI)
 
 ---
 
