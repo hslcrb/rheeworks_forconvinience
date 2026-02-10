@@ -22,30 +22,37 @@ def setup_input_method():
     OS 독립적 입력 방식 설정 / OS-independent input method setup.
     Ensures Korean (한글) input works properly across Linux IM frameworks.
     """
-    if platform.system() == "Linux":
-        # Detect system IM module / 시스템 IM 모듈 감지
-        im_module = os.environ.get("QT_IM_MODULE", "").lower()
-        gtk_im = os.environ.get("GTK_IM_MODULE", "").lower()
+    if platform.system() != "Linux":
+        return
+    
+    # Detect system IM module / 시스템 IM 모듈 감지
+    im_module = os.environ.get("QT_IM_MODULE", "").lower()
+    gtk_im = os.environ.get("GTK_IM_MODULE", "").lower()
+    
+    if "fcitx" in im_module or "fcitx" in gtk_im:
+        os.environ["QT_IM_MODULE"] = "fcitx"
+        os.environ.setdefault("XMODIFIERS", "@im=fcitx")
         
-        if "fcitx" in im_module or "fcitx" in gtk_im:
-            os.environ["QT_IM_MODULE"] = "fcitx"
-            # Point to system Qt6 fcitx plugin / 시스템 Qt6 fcitx 플러그인 경로 설정
-            system_plugin_path = "/usr/lib/x86_64-linux-gnu/qt6/plugins"
-            if os.path.exists(system_plugin_path):
-                existing = os.environ.get("QT_PLUGIN_PATH", "")
-                if system_plugin_path not in existing:
-                    os.environ["QT_PLUGIN_PATH"] = (
-                        f"{existing}:{system_plugin_path}" if existing else system_plugin_path
-                    )
-        elif "ibus" in im_module or "ibus" in gtk_im:
-            os.environ["QT_IM_MODULE"] = "ibus"
-        
-        # Also set XMODIFIERS if not set / XMODIFIERS도 설정
-        if not os.environ.get("XMODIFIERS"):
-            if "fcitx" in os.environ.get("QT_IM_MODULE", ""):
-                os.environ["XMODIFIERS"] = "@im=fcitx"
-            elif "ibus" in os.environ.get("QT_IM_MODULE", ""):
-                os.environ["XMODIFIERS"] = "@im=ibus"
+        # Copy system fcitx Qt6 plugin into PySide6 if missing
+        # PySide6 자체 Qt6를 사용하므로 시스템 플러그인을 직접 복사해야 함
+        try:
+            import PySide6
+            pyside_plugin_dir = os.path.join(
+                os.path.dirname(PySide6.__file__),
+                "Qt", "plugins", "platforminputcontexts"
+            )
+            target = os.path.join(pyside_plugin_dir, "libfcitxplatforminputcontextplugin-qt6.so")
+            source = "/usr/lib/x86_64-linux-gnu/qt6/plugins/platforminputcontexts/libfcitxplatforminputcontextplugin-qt6.so"
+            
+            if not os.path.exists(target) and os.path.exists(source):
+                import shutil
+                shutil.copy2(source, target)
+        except Exception:
+            pass
+    
+    elif "ibus" in im_module or "ibus" in gtk_im:
+        os.environ["QT_IM_MODULE"] = "ibus"
+        os.environ.setdefault("XMODIFIERS", "@im=ibus")
 
 
 # Must be called BEFORE QApplication import / QApplication import 전에 호출 필수
