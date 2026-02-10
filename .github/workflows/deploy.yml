@@ -213,9 +213,38 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+  build-c-linux:
+    name: Build C Binary (Linux)
+    needs: version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install GTK3 and Curl
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libcurl4-openssl-dev
+      
+      - name: Compile StudyAI
+        run: |
+          cd "Utilities 유틸리티/StudyAI - Series/StudyAI - MV"
+          make
+          
+      - name: Package Build
+        run: |
+          cd "Utilities 유틸리티/StudyAI - Series/StudyAI - MV"
+          zip "studyaimv-${{ needs.version.outputs.version }}-linux.zip" studyaimv README.md
+          
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bin-studyaimv-linux
+          path: "Utilities 유틸리티/StudyAI - Series/StudyAI - MV/*.zip"
+
   create-release:
     name: Create GitHub Release
-    needs: [version, build-binaries, build-docker]
+    needs: [version, build-binaries, build-docker, build-c-linux]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
@@ -255,6 +284,7 @@ jobs:
             - **Typer Series**: Basic, Pomodoro
             - **Rucia Series**: Pris (Dashboard), Lavendar (Backup), Frytesty (Tester)
             - **Automaker Series**: Clicker, Text Generator, Template Generator
+            - **StudyAI Series**: StudyAI - MV (C/GTK Chat App)
             
             ## 🚀 실행 파일 / Binaries
             각 운영체제별 압축 파일을 다운로드하여 실행하십시오. (Windows, Linux, macOS 지원)
