@@ -204,6 +204,16 @@ char* markdown_to_pango(const char *text) {
     return g_string_free(out, FALSE);
 }
 
+// --- Auto-scroll Helper ---
+
+gboolean scroll_to_bottom(gpointer user_data) {
+    if (scrolled_window) {
+        GtkAdjustment *adj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scrolled_window));
+        gtk_adjustment_set_value(adj, gtk_adjustment_get_upper(adj) - gtk_adjustment_get_page_size(adj));
+    }
+    return FALSE;
+}
+
 // --- Streaming Callbacks ---
 
 gboolean update_bot_message(gpointer user_data) {
@@ -217,6 +227,8 @@ gboolean update_bot_message(gpointer user_data) {
         }
     }
     free(chunk);
+    // Auto-scroll to bottom during streaming
+    g_idle_add(scroll_to_bottom, NULL);
     return FALSE;
 }
 
@@ -362,6 +374,9 @@ GtkWidget* add_message_bubble(const char *text, int is_user) {
     
     gtk_list_box_insert(GTK_LIST_BOX(chat_list_box), row_box, -1);
     gtk_widget_show_all(row_box);
+    
+    // Auto-scroll to bottom when new message added
+    g_idle_add(scroll_to_bottom, NULL);
     
     return label;
 }
