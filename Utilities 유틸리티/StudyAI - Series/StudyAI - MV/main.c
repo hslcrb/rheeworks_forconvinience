@@ -1,6 +1,6 @@
 /*
  * StudyAI - MV (Minimum Viable) - Ultra Premium Edition
- * Modern AI Chat Application with SVG Graphics & Smooth Animations
+ * Modern AI Chat Application with SVG Graphics & Advanced Features
  * Rheehose (Rhee Creative) 2008-2026
  * Licensed under Apache-2.0
  */
@@ -90,9 +90,7 @@ GdkPixbuf* svg_to_pixbuf(const char *svg_data, int width, int height) {
     GError *error = NULL;
     RsvgHandle *handle = rsvg_handle_new_from_data((const guint8*)svg_data, strlen(svg_data), &error);
     if (!handle) {
-        if (error) {
-            g_error_free(error);
-        }
+        if (error) g_error_free(error);
         return NULL;
     }
     
@@ -108,14 +106,35 @@ GdkPixbuf* svg_to_pixbuf(const char *svg_data, int width, int height) {
     return pixbuf;
 }
 
-// --- Markdown Parser (same as before) ---
+// --- Enhanced Markdown Parser with Heading Support ---
 
 char* markdown_to_pango(const char *text) {
     GString *out = g_string_new("");
     int len = strlen(text);
     int in_bold = 0, in_italic = 0, in_code = 0;
+    int i = 0;
 
-    for (int i = 0; i < len; i++) {
+    while (i < len) {
+        // Handle Heading (###)
+        if (i == 0 || text[i-1] == '\n') {
+            if (i + 2 < len && text[i] == '#' && text[i+1] == '#' && text[i+2] == '#' && text[i+3] == ' ') {
+                // Find end of line
+                int end = i + 4;
+                while (end < len && text[end] != '\n') end++;
+                
+                g_string_append(out, "<span size='large' weight='bold'>");
+                for (int j = i + 4; j < end; j++) {
+                    if (text[j] == '<') g_string_append(out, "&lt;");
+                    else if (text[j] == '&') g_string_append(out, "&amp;");
+                    else g_string_append_c(out, text[j]);
+                }
+                g_string_append(out, "</span>\n");
+                i = end + 1;
+                continue;
+            }
+        }
+
+        // Handle Code (backtick)
         if (text[i] == '`') {
             if (in_code) {
                 g_string_append(out, "</tt></span>");
@@ -124,6 +143,7 @@ char* markdown_to_pango(const char *text) {
                 g_string_append(out, "<span background='#444' foreground='#fff'><tt>");
                 in_code = 1;
             }
+            i++;
             continue;
         }
         
@@ -131,26 +151,32 @@ char* markdown_to_pango(const char *text) {
             if (text[i] == '<') g_string_append(out, "&lt;");
             else if (text[i] == '&') g_string_append(out, "&amp;");
             else g_string_append_c(out, text[i]);
-            continue;
-        }
-
-        if (i + 1 < len && text[i] == '*' && text[i+1] == '*') {
-            in_bold = !in_bold;
-            g_string_append(out, in_bold ? "<b>" : "</b>");
             i++;
             continue;
         }
 
-        if (text[i] == '*') {
-            in_italic = !in_italic;
-            g_string_append(out, in_italic ? "<i>" : "</i>");
+        // Handle Bold (**)
+        if (i + 1 < len && text[i] == '*' && text[i+1] == '*') {
+            in_bold = !in_bold;
+            g_string_append(out, in_bold ? "<b>" : "</b>");
+            i += 2;
             continue;
         }
 
+        // Handle Italic (*)
+        if (text[i] == '*') {
+            in_italic = !in_italic;
+            g_string_append(out, in_italic ? "<i>" : "</i>");
+            i++;
+            continue;
+        }
+
+        // Escape XML/Pango special chars
         if (text[i] == '<') g_string_append(out, "&lt;");
         else if (text[i] == '>') g_string_append(out, "&gt;");
         else if (text[i] == '&') g_string_append(out, "&amp;");
         else g_string_append_c(out, text[i]);
+        i++;
     }
     
     if (in_code) g_string_append(out, "</tt></span>");
@@ -220,12 +246,30 @@ GtkWidget* create_svg_image(const char *svg_data, int size) {
     return image;
 }
 
+// Copy button callback
+void on_copy_clicked(GtkWidget *widget, gpointer user_data) {
+    const char *text = (const char *)user_data;
+    GtkClipboard *clipboard = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
+    gtk_clipboard_set_text(clipboard, text, -1);
+}
+
+// Reply button callback
+void on_reply_clicked(GtkWidget *widget, gpointer user_data) {
+    const char *text = (const char *)user_data;
+    gtk_entry_set_text(GTK_ENTRY(prompt_entry), text);
+    gtk_widget_grab_focus(prompt_entry);
+    gtk_editable_set_position(GTK_EDITABLE(prompt_entry), -1);
+}
+
 GtkWidget* add_message_bubble(const char *text, int is_user) {
     GtkWidget *row_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12);
     gtk_widget_set_margin_top(row_box, 8);
     gtk_widget_set_margin_bottom(row_box, 8);
     
     GtkWidget *avatar = create_svg_image(is_user ? SVG_USER_AVATAR : SVG_BOT_AVATAR, 40);
+    
+    // Content box with label and buttons
+    GtkWidget *content_vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
     
     GtkWidget *bubble_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     GtkWidget *label = gtk_label_new(text);
@@ -250,13 +294,33 @@ GtkWidget* add_message_bubble(const char *text, int is_user) {
     gtk_style_context_add_class(context, "message-bubble");
     gtk_style_context_add_class(context, is_user ? "user-bubble" : "bot-bubble");
     
+    gtk_box_pack_start(GTK_BOX(content_vbox), bubble_box, TRUE, TRUE, 0);
+    
+    // Add copy/reply buttons only for bot messages
+    if (!is_user && text && strlen(text) > 0) {
+        GtkWidget *button_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
+        
+        GtkWidget *copy_btn = gtk_button_new_with_label("📋 Copy");
+        g_signal_connect(copy_btn, "clicked", G_CALLBACK(on_copy_clicked), g_strdup(text));
+        gtk_style_context_add_class(gtk_widget_get_style_context(copy_btn), "action-btn");
+        
+        GtkWidget *reply_btn = gtk_button_new_with_label("↩ Reply");
+        g_signal_connect(reply_btn, "clicked", G_CALLBACK(on_reply_clicked), g_strdup(text));
+        gtk_style_context_add_class(gtk_widget_get_style_context(reply_btn), "action-btn");
+        
+        gtk_box_pack_start(GTK_BOX(button_box), copy_btn, FALSE, FALSE, 0);
+        gtk_box_pack_start(GTK_BOX(button_box), reply_btn, FALSE, FALSE, 0);
+        
+        gtk_box_pack_start(GTK_BOX(content_vbox), button_box, FALSE, FALSE, 0);
+    }
+    
     if (is_user) {
         gtk_box_pack_end(GTK_BOX(row_box), avatar, FALSE, FALSE, 0);
-        gtk_box_pack_end(GTK_BOX(row_box), bubble_box, FALSE, FALSE, 0);
+        gtk_box_pack_end(GTK_BOX(row_box), content_vbox, FALSE, FALSE, 0);
         gtk_widget_set_halign(row_box, GTK_ALIGN_END);
     } else {
         gtk_box_pack_start(GTK_BOX(row_box), avatar, FALSE, FALSE, 0);
-        gtk_box_pack_start(GTK_BOX(row_box), bubble_box, FALSE, FALSE, 0);
+        gtk_box_pack_start(GTK_BOX(row_box), content_vbox, FALSE, FALSE, 0);
         gtk_widget_set_halign(row_box, GTK_ALIGN_START);
     }
     
@@ -322,7 +386,6 @@ void on_send_clicked(GtkWidget *widget, gpointer data) {
 
     const char *text = gtk_entry_get_text(GTK_ENTRY(prompt_entry));
     if (strlen(text) > 0) {
-        // Smooth transition to chat view
         gtk_stack_set_transition_type(GTK_STACK(stack), GTK_STACK_TRANSITION_TYPE_SLIDE_LEFT);
         gtk_stack_set_transition_duration(GTK_STACK(stack), 300);
         gtk_stack_set_visible_child_name(GTK_STACK(stack), "chat_view");
@@ -363,22 +426,26 @@ void set_theme(int dark) {
         "entry:focus { border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.3); }"
         "button.send-btn { background: linear-gradient(135deg, #11998e, #38ef7d); color: white; border-radius: 24px; font-weight: 600; border: none; padding: 12px 28px; transition: all 0.3s; }"
         "button.send-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(56,239,125,0.4); }"
+        "button.action-btn { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); padding: 6px 12px; font-size: 12px; transition: all 0.2s; }"
+        "button.action-btn:hover { background: rgba(255,255,255,0.2); color: white; }"
         "label.title { font-size: 42px; font-weight: 700; color: #fff; text-shadow: 0 4px 20px rgba(102,126,234,0.5); }"
         "label.subtitle { font-size: 16px; color: rgba(255,255,255,0.7); font-weight: 300; letter-spacing: 0.5px; }";
     } else {
         css = 
-        "window { background: linear-gradient(135deg, #ffecd2, #fcb69f); color: #333; }"
+        "window { background: linear-gradient(135deg, #f5f0ff, #e8d5ff, #f0e6ff); color: #333; }"
         "list { background: transparent; }"
-        ".message-bubble { padding: 14px 18px; border-radius: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: all 0.2s; }"
-        ".message-bubble:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }"
-        ".user-bubble { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }"
-        ".bot-bubble { background: white; color: #333; border: 1px solid rgba(0,0,0,0.05); }"
-        "entry { background: white; color: #333; border-radius: 24px; border: 1px solid rgba(0,0,0,0.1); padding: 12px 20px; font-size: 14px; }"
-        "entry:focus { border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.2); }"
-        "button.send-btn { background: linear-gradient(135deg, #11998e, #38ef7d); color: white; border-radius: 24px; font-weight: 600; border: none; padding: 12px 28px; transition: all 0.3s; }"
-        "button.send-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(56,239,125,0.3); }"
-        "label.title { font-size: 42px; font-weight: 700; color: #333; text-shadow: 0 2px 10px rgba(0,0,0,0.1); }"
-        "label.subtitle { font-size: 16px; color: rgba(0,0,0,0.6); font-weight: 300; letter-spacing: 0.5px; }";
+        ".message-bubble { padding: 14px 18px; border-radius: 18px; box-shadow: 0 4px 12px rgba(118,75,162,0.15); transition: all 0.2s; }"
+        ".message-bubble:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(118,75,162,0.2); }"
+        ".user-bubble { background: linear-gradient(135deg, #b8a3e8, #9b87d6); color: white; }"
+        ".bot-bubble { background: white; color: #333; border: 1px solid rgba(118,75,162,0.15); }"
+        "entry { background: white; color: #333; border-radius: 24px; border: 1px solid rgba(118,75,162,0.2); padding: 12px 20px; font-size: 14px; }"
+        "entry:focus { border-color: #9b87d6; box-shadow: 0 0 0 3px rgba(155,135,214,0.2); }"
+        "button.send-btn { background: linear-gradient(135deg, #9b87d6, #b8a3e8); color: white; border-radius: 24px; font-weight: 600; border: none; padding: 12px 28px; transition: all 0.3s; }"
+        "button.send-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(155,135,214,0.3); }"
+        "button.action-btn { background: rgba(155,135,214,0.1); color: #764ba2; border-radius: 12px; border: 1px solid rgba(118,75,162,0.2); padding: 6px 12px; font-size: 12px; transition: all 0.2s; }"
+        "button.action-btn:hover { background: rgba(155,135,214,0.2); color: #5a3782; }"
+        "label.title { font-size: 42px; font-weight: 700; color: #764ba2; text-shadow: 0 2px 10px rgba(118,75,162,0.2); }"
+        "label.subtitle { font-size: 16px; color: rgba(118,75,162,0.7); font-weight: 300; letter-spacing: 0.5px; }";
     }
     
     gtk_css_provider_load_from_data(provider, css, -1, NULL);
@@ -393,7 +460,6 @@ void on_toggle_theme(GtkWidget *widget, gpointer data) {
     gtk_button_set_label(GTK_BUTTON(widget), is_dark_mode ? "☀" : "🌙");
 }
 
-// Logo Pulse Animation
 gboolean pulse_logo(gpointer user_data) {
     static double scale = 1.0;
     static int direction = 1;
@@ -404,10 +470,9 @@ gboolean pulse_logo(gpointer user_data) {
     if (scale > 1.1) direction = -1;
     if (scale < 0.95) direction = 1;
     
-    // Trigger redraw (simple approach, ideally use CSS animations but this works for MVP)
     gtk_widget_queue_draw(logo);
     
-    return TRUE; // Continue animation
+    return TRUE;
 }
 
 int main(int argc, char *argv[]) {
@@ -421,7 +486,6 @@ int main(int argc, char *argv[]) {
     GtkWidget *main_vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_container_add(GTK_CONTAINER(main_window), main_vbox);
 
-    // Header
     GtkWidget *header = gtk_header_bar_new();
     gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(header), TRUE);
     gtk_header_bar_set_title(GTK_HEADER_BAR(header), "StudyAI");
@@ -433,19 +497,17 @@ int main(int argc, char *argv[]) {
     g_signal_connect(theme_btn, "clicked", G_CALLBACK(on_toggle_theme), NULL);
     gtk_header_bar_pack_end(GTK_HEADER_BAR(header), theme_btn);
 
-    // Stack
     stack = gtk_stack_new();
     gtk_stack_set_transition_type(GTK_STACK(stack), GTK_STACK_TRANSITION_TYPE_CROSSFADE);
     gtk_stack_set_transition_duration(GTK_STACK(stack), 400);
     gtk_box_pack_start(GTK_BOX(main_vbox), stack, TRUE, TRUE, 0);
 
-    // 1. Start View (Refined)
+    // Start View
     GtkWidget *start_vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 30);
     gtk_widget_set_valign(start_vbox, GTK_ALIGN_CENTER);
     gtk_widget_set_halign(start_vbox, GTK_ALIGN_CENTER);
     
     GtkWidget *logo_image = create_svg_image(SVG_LOGO, 150);
-    // Add subtle pulse animation
     g_timeout_add(50, pulse_logo, logo_image);
     
     GtkWidget *title_label = gtk_label_new("StudyAI");
@@ -461,7 +523,7 @@ int main(int argc, char *argv[]) {
 
     gtk_stack_add_named(GTK_STACK(stack), start_vbox, "start_view");
 
-    // 2. Chat View
+    // Chat View
     scrolled_window = gtk_scrolled_window_new(NULL, NULL);
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
     
