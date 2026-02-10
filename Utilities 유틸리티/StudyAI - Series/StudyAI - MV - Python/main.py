@@ -14,6 +14,8 @@ import random
 import threading
 import platform
 import requests
+import time
+import locale
 from datetime import datetime
 
 
@@ -406,7 +408,10 @@ class HangulLineEdit(QLineEdit):
     Custom LineEdit with internal Hangul engine / 자체 한글 엔진을 포함한 LineEdit.
     Toggles mode with Right Alt (Hangul key).
     """
+    mode_changed = Signal(bool) # Signal for mode change / 모드 변경 신호
+
     def __init__(self, parent=None):
+
         super().__init__(parent)
         self.is_hangul = False
         self.automata = HangulAutomata()
@@ -417,12 +422,23 @@ class HangulLineEdit(QLineEdit):
         from PySide6.QtCore import QStringListModel
         self.commands = [
             "/clear", "/help", "/exit", 
-            "/sclear", "/draw"
+            "/sclear", "/draw", "/trans"
         ]
         self.completer = QCompleter(self.commands, self)
         self.completer.setCaseSensitivity(Qt.CaseInsensitive)
         self.completer.setCompletionMode(QCompleter.PopupCompletion)
         self.setCompleter(self.completer)
+
+    def set_mode(self, is_hangul):
+        """External control of mode / 외부에서 모드 제어"""
+        if self.is_hangul != is_hangul:
+            self.commit_composition()
+            self.is_hangul = is_hangul
+            mode_str = "KO" if self.is_hangul else "EN"
+            print(f"[MODE] Switched to {mode_str}")
+            return True
+        return False
+
 
     def keyPressEvent(self, event: QKeyEvent):
         # Toggle Hangul mode / 한영 전환
@@ -430,7 +446,9 @@ class HangulLineEdit(QLineEdit):
            (event.key() == Qt.Key_Alt and event.modifiers() & Qt.AltModifier):
             self.commit_composition()
             self.is_hangul = not self.is_hangul
+            self.mode_changed.emit(self.is_hangul)
             mode_str = "KO" if self.is_hangul else "EN"
+
             print(f"[MODE] Switched to {mode_str}")
             # Update window title to show mode
             window = self.window()
@@ -619,7 +637,9 @@ class StudyAITerminal(QMainWindow):
         
         # Input field / 입력 필드
         self.input_field = HangulLineEdit()
+        self.input_field.mode_changed.connect(self.on_mode_changed)
         self.input_field.setFont(QFont("Monospace", 12))
+
         self.input_field.setStyleSheet("""
             QLineEdit {
                 background-color: #1a1a1a;
@@ -636,29 +656,124 @@ class StudyAITerminal(QMainWindow):
         input_container.setStyleSheet("background-color: #1a1a1a;")
         layout.addWidget(input_container)
         
+        # Footer area (Buttons + Context) / 하단 영역 (버튼 + 컨텍스트)
+        footer_layout = QHBoxLayout()
+        footer_layout.setContentsMargins(12, 4, 12, 4)
+        footer_layout.setSpacing(10)
+        
+        # Action Buttons (Left side) / 실행 버튼 (왼쪽)
+        btn_style = """
+            QPushButton {
+                background-color: #333333;
+                color: #cccccc;
+                border: none;
+                padding: 4px 10px;
+                border-radius: 3px;
+                font-family: Monospace;
+                font-size: 10px;
+            }
+            QPushButton:hover {
+                background-color: #444444;
+                color: #ffffff;
+            }
+            QPushButton:pressed {
+                background-color: #222222;
+            }
+        """
+        
+        self.btn_clear = QPushButton("CLEAR")
+        self.btn_clear.setToolTip("Clear Screen / 화면 지우기 (/clear)")
+        self.btn_clear.clicked.connect(lambda: self.input_field.setText("/clear") or self.on_enter())
+        
+        self.btn_sclear = QPushButton("RESET")
+        self.btn_sclear.setToolTip("Reset Session / 세션 초기화 (/sclear)")
+        self.btn_sclear.clicked.connect(lambda: self.input_field.setText("/sclear") or self.on_enter())
+        
+        self.btn_draw = QPushButton("DRAW")
+        self.btn_draw.setToolTip("Restore Screen / 화면 복구 (/draw)")
+        self.btn_draw.clicked.connect(lambda: self.input_field.setText("/draw") or self.on_enter())
+        
+        for btn in [self.btn_clear, self.btn_sclear, self.btn_draw]:
+            btn.setStyleSheet(btn_style)
+            footer_layout.addWidget(btn)
+            
+        footer_layout.addStretch()
+        
         # Context bar / 컨텍스트 바
         self.context_bar = QLabel("Context: 0/32000 tokens (0%)")
         self.context_bar.setFont(QFont("Monospace", 9))
-        self.context_bar.setStyleSheet("""
-            QLabel {
-                color: #666666;
-                background-color: #111111;
-                padding: 3px 12px;
-                border-top: 1px solid #333333;
-            }
-        """)
-        self.context_bar.setAlignment(Qt.AlignRight)
-        layout.addWidget(self.context_bar)
+        self.context_bar.setStyleSheet("color: #666666;")
+        footer_layout.addWidget(self.context_bar)
         
-        # Window styling / 윈도우 스타일링
-        self.setStyleSheet("""
-            QMainWindow {
-                background-color: #1a1a1a;
-            }
-        """)
+        # Language Toggle Button (Right side) / 언어 전환 버튼 (오른쪽)
+        self.lang_btn = QPushButton("EN")
+        self.lang_btn.setFixedWidth(60)
+        self.lang_btn.setFont(QFont("Monospace", 10, QFont.Bold))
+        self.lang_btn.clicked.connect(self.toggle_lang)
+        self.update_lang_btn_style()
+        footer_layout.addWidget(self.lang_btn)
+        
+        footer_container = QWidget()
+        footer_container.setLayout(footer_layout)
+        footer_container.setStyleSheet("background-color: #111111; border-top: 1px solid #333333;")
+        layout.addWidget(footer_container)
         
         # Focus input / 입력 포커스
         self.input_field.setFocus()
+
+    def on_mode_changed(self, is_ko):
+        """Handle mode change from hotkey / 핫키를 통한 모드 변경 처리"""
+        self.update_lang_btn_style()
+        # Update window title / 윈도우 제목 업데이트
+        mode_str = "KO" if is_ko else "EN"
+        title = self.windowTitle().split(" [")[0]
+        self.setWindowTitle(f"{title} [{mode_str}]")
+
+    def toggle_lang(self):
+
+        """Manual toggle via button / 버튼을 통한 수동 전환"""
+        new_mode = not self.input_field.is_hangul
+        self.input_field.set_mode(new_mode)
+        self.update_lang_btn_style()
+        
+        # Also update window title / 윈도우 제목도 업데이트
+        mode_str = "KO" if new_mode else "EN"
+        title = self.windowTitle().split(" [")[0]
+        self.setWindowTitle(f"{title} [{mode_str}]")
+
+    def update_lang_btn_style(self):
+        """Update button appearance / 버튼 외형 업데이트"""
+        is_ko = self.input_field.is_hangul
+        self.lang_btn.setText("한" if is_ko else "EN")
+        if is_ko:
+            # High-visibility KO mode / 눈에 띄는 한국어 모드
+            self.lang_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #007acc;
+                    color: white;
+                    border: 1px solid #005a9e;
+                    border-radius: 4px;
+                    padding: 5px;
+                }
+                QPushButton:hover {
+                    background-color: #008be5;
+                }
+            """)
+        else:
+            # Subtle EN mode / 차분한 영어 모드
+            self.lang_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #333333;
+                    color: #aaaaaa;
+                    border: 1px solid #444444;
+                    border-radius: 4px;
+                    padding: 5px;
+                }
+                QPushButton:hover {
+                    background-color: #444444;
+                    color: white;
+                }
+            """)
     
     def append_text(self, text, color="#d4d4d4"):
         """Append plain text with color / 색상 일반 텍스트 추가"""
@@ -707,7 +822,7 @@ class StudyAITerminal(QMainWindow):
         self.append_text("╚" + "═" * BOX_W + "╝\n", "#6aff6a")
         self.append_text(f"\n  {greeting}\n", "#aaaaaa")
         self.append_text("  Type your question and press Enter.\n", "#666666")
-        self.append_text("  Commands: /clear, /sclear, /draw, /help, /exit\n\n", "#666666")
+        self.append_text("  Commands: /clear, /sclear, /draw, /trans, /help, /exit\n\n", "#666666")
     
     def on_enter(self):
         """Handle user input / 사용자 입력 처리"""
@@ -754,7 +869,19 @@ class StudyAITerminal(QMainWindow):
         elif user_input == "/exit":
             self.close()
             return
-
+            
+        elif user_input == "/trans":
+            # Detect system language / 시스템 언어 감지
+            try:
+                sys_lang = locale.getdefaultlocale()[0]
+                lang_name = "Korean" if "ko" in sys_lang.lower() else "English"
+            except:
+                lang_name = "Korean" # Default to Korean for this user
+            
+            # Insert invisible system instruction / 보이지 않는 시스템 지시어 삽입
+            user_input = f"[SYSTEM: PLEASE RESPOND IN {lang_name.upper()}] " + user_input
+            # Continue to send logic
+            
         # Append user message to terminal / 사용자 메시지 터미널에 추가
         self.append_text(f"\nYOU: {user_input}\n", "#4ec9b0")
         
