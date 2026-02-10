@@ -222,8 +222,9 @@ class HangulAutomata:
     COMPLEX_JONG = {
         ('ㄱ', 'ㅅ'): 'ㄳ', ('ㄴ', 'ㅈ'): 'ㄵ', ('ㄴ', 'ㅎ'): 'ㄶ',
         ('ㄹ', 'ㄱ'): 'ㄺ', ('ㄹ', 'ㅁ'): 'ㄻ', ('ㄹ', 'ㅂ'): 'ㄼ',
-        ('ㄹ', 'ㅅ'): 'ㄽ', ('ㄹ', 'ㅌ'): 'ㄾ', ('ㄹ', 'ㅍ'): 'ㄿ',
-        ('ㄹ', 'ㅎ'): 'ㅀ', ('ㅂ', 'ㅅ'): 'ㅄ'
+        ('ㄹ', 'ㅅ'): 'ㄽ', ('ㄹ', 'ㄾ'): 'ㄾ', ('ㄹ', 'ㅍ'): 'ㄿ',
+        ('ㄹ', 'ㅎ'): 'ㅀ', ('ㅂ', 'ㅅ'): 'ㅄ',
+        ('ㅅ', 'ㅅ'): 'ㅆ', ('ㄱ', 'ㄱ'): 'ㄲ'  # Support double-typing for double consonants
     }
 
     def __init__(self):
@@ -254,14 +255,18 @@ class HangulAutomata:
 
     def process_key(self, key):
         """Processes a char key, returns (committed, current_composition)"""
-        if key not in self.MAP:
+        # Mapping from QWERTY or direct Jamo input
+        # QWERTY 또는 직접 입력된 자모 매핑
+        if key in self.MAP:
+            jamo = self.MAP[key]
+        elif key in self.CHO or key in self.JUNG or key in self.JONG:
+            jamo = key
+        else:
             committed = self.combine()
             self.reset()
             return committed + key, ""
 
-        jamo = self.MAP[key]
-        
-        # 1. Start or Cho
+        # 1. Start or Cho / 초성 시작 또는 글자 없음
         if self.cho == -1:
             if jamo in self.CHO:
                 self.cho = self.CHO.index(jamo)
@@ -294,7 +299,8 @@ class HangulAutomata:
                 self.jong = self.JONG.index(jamo)
                 return "", self.combine()
             
-            # New block (Commit and start new Cho)
+            # If jamo is not in JONG but is a valid CHO (like ㄸ, ㅃ, ㅉ), start new block
+            # 종성이 될 수 없는 자음(ㄸ, ㅃ, ㅉ 등)인 경우 새 글자 시작
             prev = self.combine()
             self.reset()
             if jamo in self.CHO:
@@ -365,6 +371,11 @@ class HangulLineEdit(QLineEdit):
             self.is_hangul = not self.is_hangul
             mode_str = "KO" if self.is_hangul else "EN"
             print(f"[MODE] Switched to {mode_str}")
+            # Update window title to show mode
+            window = self.window()
+            if window:
+                title = window.windowTitle().split(" [")[0]
+                window.setWindowTitle(f"{title} [{mode_str}]")
             return
 
         if not self.is_hangul:
