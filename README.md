@@ -30,6 +30,11 @@ Tools providing various automation functions.
   - High-performance auto-clicker tool (Speed control & hotkey support)
   - **Premium UI**: HSL 컬러 팔레트 적용, 현대적인 레이아웃
 
+- **[텍스트생성기-Text Generator](file:///home/rheehose/문서/rheeworks_forconvinience/Automaker-오토메이커%20Series/텍스트생성기-Text%20Generator/)**
+  - 다양한 언어와 옵션의 더미 텍스트 생성 도구
+  - Dummy text generation tool with various languages and options
+  - **Premium UI**: GitHub 스타일 다크 테크 미학 적용
+
 ---
 
 ## 🚀 시작하기 / Getting Started
