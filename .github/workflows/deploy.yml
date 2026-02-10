@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI/CD Pipeline (Monorepo Optimized)
 
 on:
   push:
@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.calc_version.outputs.version }}
+      short_sha: ${{ steps.calc_version.outputs.short_sha }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -31,13 +32,15 @@ jobs:
           PATCH=$((COMMIT_COUNT % 10))
           VERSION="v${MAJOR}.${MINOR}.${PATCH}"
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
           echo "Calculated version: ${VERSION}"
 
   build-binaries:
-    name: Build Binaries
+    name: Build Binaries (${{ matrix.project.name }})
     needs: version
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         project:
@@ -46,6 +49,12 @@ jobs:
             script: "main.py"
           - name: "typer-pomodoro"
             path: "Typer-타이퍼 Series/포모도로 버전-Pomodoro Version"
+            script: "main.py"
+          - name: "automaker-clicker"
+            path: "Automaker-오토메이커 Series/클리커-Clicker"
+            script: "main.py"
+          - name: "automaker-textgen"
+            path: "Automaker-오토메이커 Series/텍스트생성기-Text Generator"
             script: "main.py"
     
     steps:
@@ -62,42 +71,50 @@ jobs:
           python -m pip install --upgrade pip
           pip install pyinstaller
           cd "${{ matrix.project.path }}"
-          pip install -r requirements.txt
+          if [ -f "requirements.txt" ]; then
+            pip install -r requirements.txt
+          fi
+        shell: bash
       
-      - name: Build with PyInstaller (Linux/macOS)
-        if: runner.os != 'Windows'
+      - name: Build with PyInstaller
         run: |
           cd "${{ matrix.project.path }}"
-          pyinstaller --onedir --windowed --name "${{ matrix.project.name }}" "${{ matrix.project.script }}"
-      
-      - name: Build with PyInstaller (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          cd "${{ matrix.project.path }}"
-          pyinstaller --onedir --windowed --name "${{ matrix.project.name }}" "${{ matrix.project.script }}"
+          pyinstaller --onedir --windowed --noconfirm --name "${{ matrix.project.name }}" "${{ matrix.project.script }}"
+        shell: bash
       
       - name: Package build
         run: |
           cd "${{ matrix.project.path }}/dist"
+          PACKAGE_NAME="${{ matrix.project.name }}-${{ needs.version.outputs.version }}-${{ runner.os }}"
           if [ "$RUNNER_OS" == "Windows" ]; then
-            7z a -tzip "${{ matrix.project.name }}-${{ needs.version.outputs.version }}-windows.zip" "${{ matrix.project.name }}"
-          elif [ "$RUNNER_OS" == "macOS" ]; then
-            zip -r "${{ matrix.project.name }}-${{ needs.version.outputs.version }}-macos.zip" "${{ matrix.project.name }}"
+            7z a -tzip "${PACKAGE_NAME}.zip" "${{ matrix.project.name }}"
           else
-            zip -r "${{ matrix.project.name }}-${{ needs.version.outputs.version }}-linux.zip" "${{ matrix.project.name }}"
+            zip -r "${PACKAGE_NAME}.zip" "${{ matrix.project.name }}"
           fi
         shell: bash
       
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.project.name }}-${{ matrix.os }}
+          name: bin-${{ matrix.project.name }}-${{ matrix.os }}
           path: ${{ matrix.project.path }}/dist/*.zip
 
   build-docker:
-    name: Build and Push Docker Image
+    name: Build Docker (${{ matrix.project.name }})
     needs: version
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - name: "typer-basic"
+            path: "Typer-타이퍼 Series/베이직 버전-Basic Version"
+          - name: "typer-pomodoro"
+            path: "Typer-타이퍼 Series/포모도로 버전-Pomodoro Version"
+          - name: "automaker-clicker"
+            path: "Automaker-오토메이커 Series/클리커-Clicker"
+          - name: "automaker-textgen"
+            path: "Automaker-오토메이커 Series/텍스트생성기-Text Generator"
     permissions:
       contents: read
       packages: write
@@ -117,36 +134,39 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.project.name }}
           tags: |
             type=raw,value=${{ needs.version.outputs.version }}
             type=raw,value=latest
+            type=sha
       
-      - name: Create Dockerfile
+      - name: Create Project-Specific Dockerfile
         run: |
-          cat > Dockerfile <<'EOF'
+          cat > Dockerfile.project <<EOF
           FROM python:3.11-slim
           WORKDIR /app
-          COPY . .
           RUN apt-get update && apt-get install -y \
               python3-tk \
+              libx11-6 \
               && rm -rf /var/lib/apt/lists/*
-          RUN pip install --no-cache-dir -r "Typer-타이퍼 Series/베이직 버전-Basic Version/requirements.txt"
-          RUN pip install --no-cache-dir -r "Typer-타이퍼 Series/포모도로 버전-Pomodoro Version/requirements.txt"
-          CMD ["/bin/bash"]
+          COPY "${{ matrix.project.path }}/requirements.txt" .
+          RUN pip install --no-cache-dir -r requirements.txt
+          COPY "${{ matrix.project.path }}" .
+          CMD ["python", "main.py"]
           EOF
       
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: ./Dockerfile.project
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
   create-release:
     name: Create GitHub Release
-    needs: [version, build-binaries]
+    needs: [version, build-binaries, build-docker]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
@@ -161,10 +181,15 @@ jobs:
         with:
           path: ./artifacts
       
+      - name: Zip Workspace for Archive
+        run: |
+          zip -r "RheeWorks-ForConvinience-Full-${{ needs.version.outputs.version }}.zip" . -x "*.git*" "**/venv/*" "**/__pycache__/*" "**/dist/*" "**/build/*"
+      
       - name: Prepare release assets
         run: |
           mkdir -p release-assets
           find ./artifacts -type f -name "*.zip" -exec cp {} ./release-assets/ \;
+          cp "RheeWorks-ForConvinience-Full-${{ needs.version.outputs.version }}.zip" ./release-assets/
           ls -lh ./release-assets/
       
       - name: Create Release
@@ -175,17 +200,22 @@ jobs:
           body: |
             # RheeWorks ForConvinience ${{ needs.version.outputs.version }}
             
-            ## 변경사항 / Changes
-            - 자동 빌드 및 배포 / Automated build and deployment
+            본 릴리스는 모든 하위 프로젝트의 최신 빌드를 포함합니다. / This release contains latest builds for all sub-projects.
             
-            ## 다운로드 / Downloads
-            - **Windows**: `*-windows.zip`
-            - **macOS**: `*-macos.zip`
-            - **Linux**: `*-linux.zip`
+            ## 📦 배포 프로젝트 / Projects
+            - **Typer Series**: Basic, Pomodoro
+            - **Automaker Series**: Clicker, Text Generator
             
-            ## Docker
+            ## 🚀 실행 파일 / Binaries
+            각 운영체제별 압축 파일을 다운로드하여 실행하십시오. (Windows, Linux, macOS 지원)
+            Download and run the zip for your OS.
+            
+            ## 🐳 Docker Images
             ```bash
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.version.outputs.version }}
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/typer-basic:latest
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/typer-pomodoro:latest
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/automaker-clicker:latest
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/automaker-textgen:latest
             ```
             
             ---
