@@ -7,8 +7,9 @@
 
 ## ✨ 주요 특징 / Key Features
 
-- **One-Click Scaffolding / 원클릭 스캐폴딩**: 폴더 구조, `web.xml`, `index.jsp` 등을 버튼 한 번으로 생성합니다. / Generates folder structure, `web.xml`, `index.jsp`, etc., with a single click.
-- **DB Utility Generator / DB 유틸리티 생성**: 선택한 DB 타입(MySQL, Oracle, PostgreSQL)에 맞는 `DBUtil.java` 코드를 자동 생성합니다. / Auto-generates `DBUtil.java` code tailored to the selected DB type.
+- **Multi-language Scaffolding / 다국어 스캐폴딩**: JSP뿐만 아니라 Python, C, Node.js, Static Web 프로젝트를 지원합니다. / Supports JSP, Python, C, Node.js, and Static Web projects.
+- **Project Specific Templates / 프로젝트별 템플릿**: 각 언어 특성에 맞는 폴더 구조와 초기 코드를 자동 생성합니다. / Auto-generates folder structures and initial code tailored to each language.
+- **DB Utility Generator (JSP)**: MySQL, Oracle, PostgreSQL 연결 코드를 선택적으로 생성합니다.
 - **Premium UI**: 프로젝트 설정 과정을 직관적으로 도와주는 프리미엄 다크 모드 인터페이스. / Premium dark mode interface for intuitive project configuration.
 
 ## 🚀 시작하기 / Getting Started
