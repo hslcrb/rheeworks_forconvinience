@@ -160,11 +160,11 @@ jobs:
       - name: Prepare Docker Build Context
         shell: bash
         run: |
-          # Use a simple directory name to avoid path issues with Docker Buildx / 도커 Buildx의 경로 문제를 피하기 위해 단순한 디렉토리 명칭 사용
+          # Create a clean build context using git archive (excludes venv, etc.) / git archive를 사용하여 깨끗한 빌드 컨텍스트 생성 (venv 등 제외)
           mkdir -p build_context
-          cp -a "${{ matrix.project.path }}/." build_context/
+          git archive HEAD "${{ matrix.project.path }}" | tar -x -C build_context --strip-components=2
           
-          # Create project-specific Dockerfile in a simple path / 단순한 경로 내에 프로젝트별 Dockerfile 생성
+          # Create project-specific Dockerfile in the clean context / 깨끗한 컨텍스트 내에 프로젝트별 Dockerfile 생성
           cat > build_context/Dockerfile.project <<'EOF'
           FROM python:3.11-slim
           WORKDIR /app
@@ -175,13 +175,16 @@ jobs:
               libx11-6 \
               && rm -rf /var/lib/apt/lists/*
           
-          # Copy files from simple context / 단순화된 컨텍스트에서 파일 복사
+          # Copy files from clean context / 정제된 컨텍스트에서 파일 복사
           COPY requirements.txt .
           RUN pip install --no-cache-dir -r requirements.txt
           COPY . .
           
           CMD ["python", "main.py"]
           EOF
+          
+          echo "### Cleaned Build Context / 정제된 빌드 컨텍스트"
+          ls -R build_context
       
       - name: Build and push
         uses: docker/build-push-action@v5
