@@ -32,6 +32,19 @@ GString *current_bot_text = NULL;
 int is_dark_mode = 0;
 volatile int is_streaming = 0;
 
+// Conversation history
+#define MAX_MESSAGES 100
+struct Message {
+    char *role;
+    char *content;
+};
+struct Message conversation_history[MAX_MESSAGES];
+int message_count = 0;
+int total_tokens = 0;
+const int MAX_TOKENS = 32000;  // Mistral Small context limit
+
+GtkWidget *context_label = NULL;
+
 struct ThreadData {
     char *user_input;
 };
@@ -107,8 +120,8 @@ char* markdown_to_pango(const char *text) {
             }
             
             if (end + 2 < len) {
-                // Render code block with dark background
-                g_string_append(out, "<span background='#2d2d2d' foreground='#d4d4d4'><tt>");
+                // Render code block with light gray background (grayscale)
+                g_string_append(out, "<span background='#f5f5f5' foreground='#333333'><tt>");
                 for (int j = start; j < end; j++) {
                     if (text[j] == '<') g_string_append(out, "&lt;");
                     else if (text[j] == '&') g_string_append(out, "&amp;");
@@ -145,7 +158,7 @@ char* markdown_to_pango(const char *text) {
                 g_string_append(out, "</tt></span>");
                 in_code = 0;
             } else {
-                g_string_append(out, "<span background='#444' foreground='#fff'><tt>");
+                g_string_append(out, "<span background='#e8e8e8' foreground='#333'><tt>");
                 in_code = 1;
             }
             i++;
@@ -356,6 +369,26 @@ GtkWidget* add_message_bubble(const char *text, int is_user) {
 gboolean completion_finished(gpointer data) {
     is_streaming = 0;
     gtk_widget_set_sensitive(prompt_entry, TRUE);
+    
+    // Add bot response to history
+    if (current_bot_text && message_count < MAX_MESSAGES) {
+        conversation_history[message_count].role = strdup("assistant");
+        conversation_history[message_count].content = strdup(current_bot_text->str);
+        message_count++;
+        
+        // Estimate tokens (rough: 4 chars per token)
+        total_tokens += strlen(current_bot_text->str) / 4;
+        
+        // Update context display
+        if (context_label) {
+            int percentage = (total_tokens * 100) / MAX_TOKENS;
+            char status[256];
+            snprintf(status, sizeof(status), "Context: %d/%d tokens (%d%%)", 
+                     total_tokens, MAX_TOKENS, percentage);
+            gtk_label_set_text(GTK_LABEL(context_label), status);
+        }
+    }
+    
     return FALSE;
 }
 
@@ -369,7 +402,7 @@ void *api_thread_func(void *data) {
         cJSON_AddBoolToObject(root, "stream", cJSON_True);
         cJSON *messages = cJSON_CreateArray();
         
-        // Add system message for concise responses
+        // Add system message
         cJSON *system_msg = cJSON_CreateObject();
         cJSON_AddStringToObject(system_msg, "role", "system");
         cJSON_AddStringToObject(system_msg, "content", 
@@ -378,7 +411,15 @@ void *api_thread_func(void *data) {
             "If user requests more detail, provide comprehensive answers freely.");
         cJSON_AddItemToArray(messages, system_msg);
         
-        // Add user message
+        // Add conversation history
+        for (int i = 0; i < message_count; i++) {
+            cJSON *hist_msg = cJSON_CreateObject();
+            cJSON_AddStringToObject(hist_msg, "role", conversation_history[i].role);
+            cJSON_AddStringToObject(hist_msg, "content", conversation_history[i].content);
+            cJSON_AddItemToArray(messages, hist_msg);
+        }
+        
+        // Add current user message
         cJSON *user_msg = cJSON_CreateObject();
         cJSON_AddStringToObject(user_msg, "role", "user");
         cJSON_AddStringToObject(user_msg, "content", tdata->user_input);
@@ -424,6 +465,14 @@ void on_send_clicked(GtkWidget *widget, gpointer data) {
         
         add_message_bubble(text, 1);
         
+        // Add user message to history
+        if (message_count < MAX_MESSAGES) {
+            conversation_history[message_count].role = strdup("user");
+            conversation_history[message_count].content = strdup(text);
+            message_count++;
+            total_tokens += strlen(text) / 4;  // Rough estimate
+        }
+        
         if (current_bot_text) g_string_free(current_bot_text, TRUE);
         current_bot_text = g_string_new("");
         current_bot_label = add_message_bubble("", 0);
@@ -448,38 +497,40 @@ void set_theme(int dark) {
     
     if (dark) {
         css = 
-        "window { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); color: #fff; }"
+        "window { background: linear-gradient(135deg, #1a1a1a, #2d2d2d, #1f1f1f); color: #fff; }"
         "list { background: transparent; }"
         ".message-bubble { padding: 14px 18px; border-radius: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); transition: all 0.2s; font-size: 15px; }"
         ".message-bubble:hover { box-shadow: 0 6px 16px rgba(0,0,0,0.5); }"
-        ".user-bubble { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }"
-        ".bot-bubble { background: rgba(255,255,255,0.08); backdrop-filter: blur(10px); color: #e0e0e0; border: 1px solid rgba(255,255,255,0.1); }"
+        ".user-bubble { background: linear-gradient(135deg, #4a4a4a, #5a5a5a); color: white; }"
+        ".bot-bubble { background: rgba(255,255,255,0.08); color: #e0e0e0; border: 1px solid rgba(255,255,255,0.1); }"
         "entry { background: rgba(255,255,255,0.1); color: white; border-radius: 24px; border: 1px solid rgba(255,255,255,0.2); padding: 12px 20px; font-size: 14px; }"
-        "entry:focus { border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.3); }"
-        "button.send-btn { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 24px; font-weight: 600; border: none; padding: 12px 28px; transition: all 0.3s; }"
-        "button.send-btn:hover { box-shadow: 0 8px 24px rgba(102,126,234,0.4); }"
-        "button.action-btn { background: rgba(102,126,234,0.15); color: #667eea; border-radius: 12px; border: 1px solid rgba(102,126,234,0.3); padding: 6px 12px; font-size: 12px; transition: all 0.2s; }"
-        "button.action-btn:hover { background: rgba(102,126,234,0.25); }"
-        ".avatar-text { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 8px; padding: 8px; font-size: 11px; font-weight: bold; }"
-        "label.title { font-size: 42px; font-weight: 700; color: white; text-shadow: 0 4px 20px rgba(102,126,234,0.5); }"
-        "label.subtitle { font-size: 16px; color: rgba(255,255,255,0.7); font-weight: 300; letter-spacing: 0.5px; }";
+        "entry:focus { border-color: #666; box-shadow: 0 0 0 3px rgba(102,102,102,0.3); }"
+        "button.send-btn { background: linear-gradient(135deg, #4a4a4a, #5a5a5a); color: white; border-radius: 24px; font-weight: 600; border: none; padding: 12px 28px; transition: all 0.3s; }"
+        "button.send-btn:hover { box-shadow: 0 8px 24px rgba(74,74,74,0.4); }"
+        "button.action-btn { background: rgba(102,102,102,0.15); color: #999; border-radius: 12px; border: 1px solid rgba(102,102,102,0.3); padding: 6px 12px; font-size: 12px; transition: all 0.2s; }"
+        "button.action-btn:hover { background: rgba(102,102,102,0.25); }"
+        ".avatar-text { background: linear-gradient(135deg, #4a4a4a, #5a5a5a); color: white; border-radius: 8px; padding: 8px; font-size: 11px; font-weight: bold; }"
+        "label.title { font-size: 42px; font-weight: 700; color: white; text-shadow: 0 4px 20px rgba(102,102,102,0.5); }"
+        "label.subtitle { font-size: 16px; color: rgba(255,255,255,0.7); font-weight: 300; letter-spacing: 0.5px; }"
+        "label.context-info { font-size: 12px; color: rgba(255,255,255,0.6); }";
     } else {
         css = 
-        "window { background: linear-gradient(135deg, #ffffff, #fafbff, #f8f9ff); color: #333; }"
+        "window { background: linear-gradient(135deg, #ffffff, #f5f5f5, #fafafa); color: #333; }"
         "list { background: transparent; }"
-        ".message-bubble { padding: 14px 18px; border-radius: 18px; box-shadow: 0 4px 12px rgba(118,75,162,0.1); transition: all 0.2s; font-size: 15px; }"
-        ".message-bubble:hover { box-shadow: 0 6px 16px rgba(118,75,162,0.15); }"
-        ".user-bubble { background: linear-gradient(135deg, #a89dd6, #8b7ec4); color: white; }"
-        ".bot-bubble { background: #ffffff; color: #333; border: 1px solid rgba(118,75,162,0.1); }"
-        "entry { background: #ffffff; color: #333; border-radius: 24px; border: 1px solid rgba(118,75,162,0.15); padding: 12px 20px; font-size: 14px; }"
-        "entry:focus { border-color: #8b7ec4; box-shadow: 0 0 0 3px rgba(139,126,196,0.15); }"
-        "button.send-btn { background: linear-gradient(135deg, #8b7ec4, #a89dd6); color: white; border-radius: 24px; font-weight: 600; border: none; padding: 12px 28px; transition: all 0.3s; }"
-        "button.send-btn:hover { box-shadow: 0 6px 20px rgba(139,126,196,0.25); }"
-        "button.action-btn { background: rgba(139,126,196,0.08); color: #6b5fa3; border-radius: 12px; border: 1px solid rgba(118,75,162,0.15); padding: 6px 12px; font-size: 12px; transition: all 0.2s; }"
-        "button.action-btn:hover { background: rgba(139,126,196,0.15); color: #5a4e8a; }"
-        ".avatar-text { background: linear-gradient(135deg, #8b7ec4, #a89dd6); color: white; border-radius: 8px; padding: 8px; font-size: 11px; font-weight: bold; }"
-        "label.title { font-size: 42px; font-weight: 700; color: #6b5fa3; text-shadow: 0 2px 10px rgba(107,95,163,0.15); }"
-        "label.subtitle { font-size: 16px; color: rgba(107,95,163,0.65); font-weight: 300; letter-spacing: 0.5px; }";
+        ".message-bubble { padding: 14px 18px; border-radius: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transition: all 0.2s; font-size: 15px; }"
+        ".message-bubble:hover { box-shadow: 0 6px 16px rgba(0,0,0,0.12); }"
+        ".user-bubble { background: linear-gradient(135deg, #6a6a6a, #7a7a7a); color: white; }"
+        ".bot-bubble { background: #ffffff; color: #333; border: 1px solid rgba(0,0,0,0.1); }"
+        "entry { background: #ffffff; color: #333; border-radius: 24px; border: 1px solid rgba(0,0,0,0.15); padding: 12px 20px; font-size: 14px; }"
+        "entry:focus { border-color: #888; box-shadow: 0 0 0 3px rgba(136,136,136,0.15); }"
+        "button.send-btn { background: linear-gradient(135deg, #5a5a5a, #6a6a6a); color: white; border-radius: 24px; font-weight: 600; border: none; padding: 12px 28px; transition: all 0.3s; }"
+        "button.send-btn:hover { box-shadow: 0 6px 20px rgba(90,90,90,0.25); }"
+        "button.action-btn { background: rgba(102,102,102,0.08); color: #555; border-radius: 12px; border: 1px solid rgba(0,0,0,0.15); padding: 6px 12px; font-size: 12px; transition: all 0.2s; }"
+        "button.action-btn:hover { background: rgba(102,102,102,0.15); color: #333; }"
+        ".avatar-text { background: linear-gradient(135deg, #5a5a5a, #6a6a6a); color: white; border-radius: 8px; padding: 8px; font-size: 11px; font-weight: bold; }"
+        "label.title { font-size: 42px; font-weight: 700; color: #444; text-shadow: 0 2px 10px rgba(68,68,68,0.15); }"
+        "label.subtitle { font-size: 16px; color: rgba(68,68,68,0.65); font-weight: 300; letter-spacing: 0.5px; }"
+        "label.context-info { font-size: 12px; color: rgba(0,0,0,0.5); }";
     }
     
     gtk_css_provider_load_from_data(provider, css, -1, NULL);
@@ -592,6 +643,14 @@ int main(int argc, char *argv[]) {
     gtk_box_pack_start(GTK_BOX(input_area), send_btn, FALSE, FALSE, 0);
 
     gtk_box_pack_end(GTK_BOX(main_vbox), input_area, FALSE, FALSE, 0);
+    
+    // Context info
+    context_label = gtk_label_new("Context: 0/32000 tokens (0%)");
+    gtk_style_context_add_class(gtk_widget_get_style_context(context_label), "context-info");
+    gtk_widget_set_margin_start(context_label, 20);
+    gtk_widget_set_margin_end(context_label, 20);
+    gtk_widget_set_margin_bottom(context_label, 8);
+    gtk_box_pack_end(GTK_BOX(main_vbox), context_label, FALSE, FALSE, 0);
 
     set_theme(0);
     gtk_widget_show_all(main_window);
