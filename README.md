@@ -20,9 +20,9 @@ This project is organized into the following sub-project series, each with its o
   - 다양한 언어와 옵션의 더미 텍스트 생성 도구
   - Dummy text generation tool with various languages and options
 - **[프로젝트 템플릿 생성-Project Template Generator](file:///home/rheehose/문서/rheeworks_forconvinience/Automaker-오토메이커%20Series/프로젝트%20템플릿%20생성-Generate%20Project%20Templates/)**
-  - JSP/Servlet 웹 프로젝트 스캐폴딩 도구 (자동 폴더 및 코드 생성)
-  - JSP/Servlet scaffolding tool (Auto folder & code generation)
-  - **Premium UI**: 프로젝트 초기화 자동화
+  - **다국어 지원 (JSP, Python, C, Node.js, Web)** 스캐폴딩 도구
+  - **Multi-language Scaffolding Tool** (JSP, Python, C, Node.js, Web)
+  - **Premium UI**: 도구별 최적화된 초기 환경 및 코드 자동 구성
 
 ---
 
