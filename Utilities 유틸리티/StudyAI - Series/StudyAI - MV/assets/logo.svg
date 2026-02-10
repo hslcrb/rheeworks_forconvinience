@@ -1,30 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="150" height="150" viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg">
     <g transform="translate(75,75)">
-        <!-- Open book with thicker lines -->
-        <!-- Left page -->
-        <path d="M -45 -25 L -45 35 L 0 28 L 0 -30 Z" fill="none" stroke="#000000" stroke-width="5"
-            stroke-linejoin="round" />
+        <!-- Center sparkle/star -->
+        <circle cx="0" cy="0" r="8" fill="#000000" />
 
-        <!-- Right page -->
-        <path d="M 0 -30 L 0 28 L 45 35 L 45 -25 Z" fill="none" stroke="#000000" stroke-width="5"
-            stroke-linejoin="round" />
+        <!-- Main rays (4 cardinal directions) -->
+        <line x1="0" y1="0" x2="0" y2="-45" stroke="#000000" stroke-width="5" stroke-linecap="round" />
+        <line x1="0" y1="0" x2="45" y2="0" stroke="#000000" stroke-width="5" stroke-linecap="round" />
+        <line x1="0" y1="0" x2="0" y2="45" stroke="#000000" stroke-width="5" stroke-linecap="round" />
+        <line x1="0" y1="0" x2="-45" y2="0" stroke="#000000" stroke-width="5" stroke-linecap="round" />
 
-        <!-- Book spine (center) -->
-        <line x1="0" y1="-30" x2="0" y2="28" stroke="#000000" stroke-width="5" />
+        <!-- Diagonal rays -->
+        <line x1="0" y1="0" x2="32" y2="-32" stroke="#000000" stroke-width="4" stroke-linecap="round" />
+        <line x1="0" y1="0" x2="32" y2="32" stroke="#000000" stroke-width="4" stroke-linecap="round" />
+        <line x1="0" y1="0" x2="-32" y2="32" stroke="#000000" stroke-width="4" stroke-linecap="round" />
+        <line x1="0" y1="0" x2="-32" y2="-32" stroke="#000000" stroke-width="4" stroke-linecap="round" />
 
-        <!-- Page lines for detail -->
-        <line x1="-35" y1="-10" x2="-10" y2="-8" stroke="#000000" stroke-width="2.5" opacity="0.6" />
-        <line x1="-35" y1="0" x2="-10" y2="2" stroke="#000000" stroke-width="2.5" opacity="0.6" />
-        <line x1="-35" y1="10" x2="-10" y2="12" stroke="#000000" stroke-width="2.5" opacity="0.6" />
-
-        <line x1="10" y1="-8" x2="35" y2="-10" stroke="#000000" stroke-width="2.5" opacity="0.6" />
-        <line x1="10" y1="2" x2="35" y2="0" stroke="#000000" stroke-width="2.5" opacity="0.6" />
-        <line x1="10" y1="12" x2="35" y2="10" stroke="#000000" stroke-width="2.5" opacity="0.6" />
-
-        <!-- AI sparkle (top right) -->
-        <circle cx="38" cy="-38" r="4" fill="#000000" />
-        <line x1="38" y1="-48" x2="38" y2="-28" stroke="#000000" stroke-width="3" />
-        <line x1="28" y1="-38" x2="48" y2="-38" stroke="#000000" stroke-width="3" />
+        <!-- Small accent rays -->
+        <line x1="0" y1="0" x2="18" y2="-40" stroke="#000000" stroke-width="3" stroke-linecap="round" />
+        <line x1="0" y1="0" x2="40" y2="-18" stroke="#000000" stroke-width="3" stroke-linecap="round" />
+        <line x1="0" y1="0" x2="40" y2="18" stroke="#000000" stroke-width="3" stroke-linecap="round" />
+        <line x1="0" y1="0" x2="18" y2="40" stroke="#000000" stroke-width="3" stroke-linecap="round" />
+        <line x1="0" y1="0" x2="-18" y2="40" stroke="#000000" stroke-width="3" stroke-linecap="round" />
+        <line x1="0" y1="0" x2="-40" y2="18" stroke="#000000" stroke-width="3" stroke-linecap="round" />
+        <line x1="0" y1="0" x2="-40" y2="-18" stroke="#000000" stroke-width="3" stroke-linecap="round" />
+        <line x1="0" y1="0" x2="-18" y2="-40" stroke="#000000" stroke-width="3" stroke-linecap="round" />
     </g>
 </svg>

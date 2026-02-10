@@ -21,6 +21,7 @@
 
 // Asset file paths
 #define ASSET_LOGO "assets/logo.svg"
+#define ASSET_LOGO_WHITE "assets/logo_white.svg"
 
 // UI Widgets
 GtkWidget *main_window;
@@ -243,17 +244,18 @@ GtkWidget* create_svg_image(const char *svg_filepath, int size) {
         return gtk_image_new(); // Return empty image on error
     }
     
-    // Swap colors based on theme (black -> white for dark mode)
-    char *themed_svg = swap_svg_colors(svg_data, is_dark_mode);
-    free(svg_data);
-    
-    GdkPixbuf *pixbuf = svg_to_pixbuf(themed_svg, size, size);
+    GdkPixbuf *pixbuf = svg_to_pixbuf(svg_data, size, size);
     GtkWidget *image = gtk_image_new_from_pixbuf(pixbuf);
     
-    free(themed_svg);
+    free(svg_data);
     if (pixbuf) g_object_unref(pixbuf);
     
     return image;
+}
+
+// Get appropriate logo based on theme
+const char* get_logo_path() {
+    return is_dark_mode ? ASSET_LOGO_WHITE : ASSET_LOGO;
 }
 
 // Copy button callback
@@ -276,10 +278,10 @@ GtkWidget* add_message_bubble(const char *text, int is_user) {
     gtk_widget_set_margin_top(row_box, 8);
     gtk_widget_set_margin_bottom(row_box, 8);
     
-    // Bot gets logo icon, user gets no icon
+    // Bot gets logo icon (theme-appropriate), user gets no icon
     GtkWidget *avatar = NULL;
     if (!is_user) {
-        avatar = create_svg_image(ASSET_LOGO, 40);
+        avatar = create_svg_image(get_logo_path(), 40);
     }
     
     // Content box with label and buttons
@@ -367,12 +369,9 @@ void *api_thread_func(void *data) {
         cJSON *system_msg = cJSON_CreateObject();
         cJSON_AddStringToObject(system_msg, "role", "system");
         cJSON_AddStringToObject(system_msg, "content", 
-            "Format your responses with proper markdown. Use:\n"
-            "- Headers (###) for sections\n"
-            "- **Bold** for emphasis\n"
-            "- `code` for technical terms\n"
-            "- Bullet points for lists\n"
-            "Focus on readability and clear structure.");
+            "Respond using markdown formatting (use ### headers, **bold**, `code`, lists). "
+            "Keep responses brief (1 paragraph max by default). "
+            "If user requests more detail, provide comprehensive answers freely.");
         cJSON_AddItemToArray(messages, system_msg);
         
         // Add user message
@@ -536,7 +535,7 @@ int main(int argc, char *argv[]) {
     gtk_widget_set_valign(start_vbox, GTK_ALIGN_CENTER);
     gtk_widget_set_halign(start_vbox, GTK_ALIGN_CENTER);
     
-    GtkWidget *logo_image = create_svg_image(ASSET_LOGO, 150);
+    GtkWidget *logo_image = create_svg_image(get_logo_path(), 150);
     g_timeout_add(50, pulse_logo, logo_image);
     
     GtkWidget *title_label = gtk_label_new("StudyAI");
