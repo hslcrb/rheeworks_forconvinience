@@ -1,112 +1,66 @@
 # RheeWorks ForConvinience
 
-**편의성 도구 모음집 / Collection of Convenience Tools**
-
-Rheehose (Rhee Creative) 2008-2026
-
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-
-## 개요 / Overview
-
-이 리포지토리는 일상적인 작업을 더 편리하게 만드는 여러 유틸리티 도구를 포함하는 모노레포입니다.  
-This repository is a monorepo containing multiple utility tools designed to make everyday tasks more convenient.
-
-## 프로젝트 구조 / Project Structure
-
-```
-rheeworks_forconvinience/
-├── Typer-타이퍼 Series/          # 자동 타이핑 도구 / Auto-typing tools
-│   ├── 베이직 버전-Basic Version/
-│   └── 포모도로 버전-Pomodoro Version/
-├── Automaker-오토메이커 Series/  # 자동화 도구 / Automation tools
-├── .github/workflows/            # CI/CD 파이프라인 / CI/CD pipeline
-├── recycle_trash/                # 파일 보존 / File preservation
-└── agents_brain/                 # 에이전트 문서 / Agent documentation
-```
+편의를 위한 다양한 도구 모음집 (모노레포)
+A collection of various convenience tools (Monorepo)
 
 ---
 
-## Typer Series / 타이퍼 시리즈
+## 🛠 구성 프로젝트 / Structure
 
-### 🔹 베이직 버전 (Basic Version)
+### 1. Typer-타이퍼 Series
+가짜 타이핑을 통해 편의를 제공하는 도구들입니다.
+Tools that provide convenience through fake typing.
 
-**가짜 타이핑 복사 도구 / Fake Typing Copier**
+- **[베이직 버전-Basic Version](file:///home/rheehose/문서/rheeworks_forconvinience/Typer-타이퍼%20Series/베이직%20버전-Basic Version/)**
+  - 원천 텍스트를 읽어 키보드 입력 시 가짜로 타이핑해주는 도구
+  - Tool that fake-types source text upon keyboard input
+  - **Premium UI**: CustomTkinter 기반 다크 모드
 
-원본 텍스트 파일을 읽어 키보드 입력을 감지할 때마다 자동으로 대상 파일에 랜덤한 길이(1-5글자)로 복사합니다.  
-Reads a source text file and automatically copies random chunks (1-5 characters) to a target file whenever keyboard input is detected.
+- **[포모도로 버전-Pomodoro Version](file:///home/rheehose/문서/rheeworks_forconvinience/Typer-타이퍼%20Series/포모도로%20버전-Pomodoro Version/)**
+  - 포모도로 타이머와 가짜 타이핑 도구가 결합된 버전 (비밀 콘솔 포함)
+  - Combined Pomodoro timer and fake typing tool (includes secret console)
+  - **Premium UI**: 미니멀리즘 디자인, 다이나믹 타이머
 
-#### 주요 기능 / Key Features
-- 📝 원천 텍스트 선택 / Select source text
-- 🎯 대상 텍스트 선택 (빈 파일 필수) / Select target text (must be empty)
-- ⌨️ 키보드 입력 감지 시 자동 복사 / Auto-copy on keyboard input
-- 🎲 랜덤 길이 복사 (1-5글자) / Random chunk size (1-5 chars)
-- 🔴 실시간 녹화 상태 표시 / Real-time recording status
+### 2. Automaker-오토메이커 Series
+다양한 자동화 기능을 제공하는 도구들입니다.
+Tools providing various automation functions.
 
-#### 설치 및 실행 / Installation & Usage
+- **[클리커-Clicker](file:///home/rheehose/문서/rheeworks_forconvinience/Automaker-오토메이커%20Series/클리커-Clicker/)**
+  - 고성능 오토 클릭커 도구 (속도 조절 및 단축키 지원)
+  - High-performance auto-clicker tool (Speed control & hotkey support)
+  - **Premium UI**: HSL 컬러 팔레트 적용, 현대적인 레이아웃
+
+---
+
+## 🚀 시작하기 / Getting Started
+
+### 요구사항 / Requirements
+- Python 3.10+
+- `tkinter` (Linux의 경우 `sudo apt install python3-tk`)
+
+### 실행 방법 / How to Run
+각 프로젝트 폴더로 이동하여 해당 가상환경을 활성화하고 실행하십시오.
+Navigate to each project folder, activate the venv, and run.
+
 ```bash
+# 예시: Typer Basic
 cd "Typer-타이퍼 Series/베이직 버전-Basic Version"
-python3 -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
+source venv/bin/activate
 python main.py
 ```
 
-#### 종속성 / Dependencies
-- `tkinter`: GUI 프레임워크 / GUI framework
-- `pynput`: 키보드 입력 감지 / Keyboard input detection
+---
+
+## 📜 가이드라인 / Guidelines
+
+자세한 에이전트 작업 지침과 프로젝트 구조는 [GEMINI.md](file:///home/rheehose/문서/rheeworks_forconvinience/GEMINI.md)를 참조하십시오.
+Refer to [GEMINI.md](file:///home/rheehose/문서/rheeworks_forconvinience/GEMINI.md) for detailed agent guidelines and structure.
 
 ---
 
-### 🔹 포모도로 버전 (Pomodoro Version)
-
-**집중 타이머 프로 + 숨겨진 타이핑 도구 / Focus Timer Pro + Hidden Typing Tool**
-
-겉으로는 일반적인 포모도로 타이머처럼 보이지만, 숨겨진 "비밀 방"에는 베이직 버전과 동일한 가짜 타이핑 기능이 숨어있습니다.  
-Appears as a normal Pomodoro timer on the surface, but contains a hidden "secret room" with the same fake typing functionality as the basic version.
-
-#### 주요 기능 / Key Features
-- 🍅 포모도로 타이머 (25분 기본) / Pomodoro timer (25 min default)
-- 🕐 실시간 타임존 시계 / Real-time timezone clock
-- 🚫 "누르지 마세요" 버튼 → 비밀 콘솔 / "Don't Press" button → Secret console
-- 🕵️ 숨겨진 가짜 타이핑 엔진 / Hidden fake typing engine
-- 🔴 녹화 상태 표시 / Recording status indicator
-
-#### 설치 및 실행 / Installation & Usage
-```bash
-cd "Typer-타이퍼 Series/포모도로 버전-Pomodoro Version"
-python3 -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-python main.py
-```
-
-#### 종속성 / Dependencies
-- `tkinter`: GUI 프레임워크 / GUI framework
-- `pynput`: 키보드 입력 감지 / Keyboard input detection
-- `tzlocal`: 타임존 감지 / Timezone detection
-
----
-
-## Automaker Series / 오토메이커 시리즈
-
-*Coming soon / 개발 예정*
-
----
-
-## 라이선스 / License
-
-Apache License 2.0 - 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.  
-Apache License 2.0 - See the [LICENSE](LICENSE) file for details.
-
-## 저작권 / Copyright
-
-© Rheehose (Rhee Creative) 2008-2026  
-Website: https://rheehose.com
-
-## 기여 / Contributing
-
-이슈 및 풀 리퀘스트는 언제나 환영합니다!  
-Issues and pull requests are always welcome!
+**Copyright (c) 2008-2026 Rheehose (Rhee Creative)**
+**Licensed under the Apache 2.0 License**
+**Website: [rheehose.com](https://rheehose.com)**
 
 ---
 
