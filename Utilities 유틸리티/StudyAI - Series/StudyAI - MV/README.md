@@ -16,7 +16,7 @@ A simple C-based AI chat application.
 
 ## 📦 의존성 / Dependencies
 ```bash
-sudo apt-get install libgtk-3-dev libcurl4-openssl-dev
+sudo apt-get install libgtk-3-dev libcurl4-openssl-dev librsvg2-dev
 ```
 
 ## 🚀 빌드 및 실행 / Build & Run

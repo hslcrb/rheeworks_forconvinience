@@ -1,6 +1,6 @@
 CC = gcc
-CFLAGS = -Wall `pkg-config --cflags gtk+-3.0`
-LIBS = `pkg-config --libs gtk+-3.0` -lcurl
+CFLAGS = -Wall `pkg-config --cflags gtk+-3.0 librsvg-2.0`
+LIBS = `pkg-config --libs gtk+-3.0 librsvg-2.0` -lcurl -lpthread
 
 TARGET = studyaimv
 SRCS = main.c cJSON.c
