@@ -90,6 +90,36 @@ char* markdown_to_pango(const char *text) {
     int i = 0;
 
     while (i < len) {
+        // Handle Code Block (```)
+        if (i + 2 < len && text[i] == '`' && text[i+1] == '`' && text[i+2] == '`') {
+            // Find end of code block
+            int start = i + 3;
+            // Skip language identifier if present
+            while (start < len && text[start] != '\n') start++;
+            if (start < len) start++; // Skip newline
+            
+            int end = start;
+            while (end + 2 < len) {
+                if (text[end] == '`' && text[end+1] == '`' && text[end+2] == '`') {
+                    break;
+                }
+                end++;
+            }
+            
+            if (end + 2 < len) {
+                // Render code block with dark background
+                g_string_append(out, "<span background='#2d2d2d' foreground='#d4d4d4'><tt>");
+                for (int j = start; j < end; j++) {
+                    if (text[j] == '<') g_string_append(out, "&lt;");
+                    else if (text[j] == '&') g_string_append(out, "&amp;");
+                    else g_string_append_c(out, text[j]);
+                }
+                g_string_append(out, "</tt></span>\n");
+                i = end + 3;
+                continue;
+            }
+        }
+        
         // Handle Heading (###)
         if (i == 0 || text[i-1] == '\n') {
             if (i + 2 < len && text[i] == '#' && text[i+1] == '#' && text[i+2] == '#' && text[i+3] == ' ') {
@@ -109,7 +139,7 @@ char* markdown_to_pango(const char *text) {
             }
         }
 
-        // Handle Code (backtick)
+        // Handle Inline Code (backtick)
         if (text[i] == '`') {
             if (in_code) {
                 g_string_append(out, "</tt></span>");
