@@ -30,11 +30,5 @@ Thumbs.db
 .env
 .env.local
 
-# Recycle trash / 재활용 휴지통
-recycle_trash/
-
-# Agent brain / 에이전트 브레인
-agents_brain/
-
 # Logs / 로그
 *.log
