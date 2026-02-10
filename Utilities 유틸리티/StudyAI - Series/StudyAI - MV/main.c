@@ -291,7 +291,7 @@ GtkWidget* add_message_bubble(const char *text, int is_user) {
     GtkWidget *bubble_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     GtkWidget *label = gtk_label_new(text);
     gtk_label_set_line_wrap(GTK_LABEL(label), TRUE);
-    gtk_label_set_max_width_chars(GTK_LABEL(label), 50);
+    gtk_label_set_max_width_chars(GTK_LABEL(label), 85);  // Increased from 50 to 85
     gtk_label_set_xalign(GTK_LABEL(label), 0.0);
     gtk_label_set_selectable(GTK_LABEL(label), TRUE);
     
@@ -450,8 +450,8 @@ void set_theme(int dark) {
         css = 
         "window { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); color: #fff; }"
         "list { background: transparent; }"
-        ".message-bubble { padding: 14px 18px; border-radius: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); transition: all 0.2s; }"
-        ".message-bubble:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.5); }"
+        ".message-bubble { padding: 14px 18px; border-radius: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); transition: all 0.2s; font-size: 15px; }"
+        ".message-bubble:hover { box-shadow: 0 6px 16px rgba(0,0,0,0.5); }"
         ".user-bubble { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }"
         ".bot-bubble { background: rgba(255,255,255,0.08); backdrop-filter: blur(10px); color: #e0e0e0; border: 1px solid rgba(255,255,255,0.1); }"
         "entry { background: rgba(255,255,255,0.1); color: white; border-radius: 24px; border: 1px solid rgba(255,255,255,0.2); padding: 12px 20px; font-size: 14px; }"
@@ -467,8 +467,8 @@ void set_theme(int dark) {
         css = 
         "window { background: linear-gradient(135deg, #ffffff, #fafbff, #f8f9ff); color: #333; }"
         "list { background: transparent; }"
-        ".message-bubble { padding: 14px 18px; border-radius: 18px; box-shadow: 0 4px 12px rgba(118,75,162,0.1); transition: all 0.2s; }"
-        ".message-bubble:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(118,75,162,0.15); }"
+        ".message-bubble { padding: 14px 18px; border-radius: 18px; box-shadow: 0 4px 12px rgba(118,75,162,0.1); transition: all 0.2s; font-size: 15px; }"
+        ".message-bubble:hover { box-shadow: 0 6px 16px rgba(118,75,162,0.15); }"
         ".user-bubble { background: linear-gradient(135deg, #a89dd6, #8b7ec4); color: white; }"
         ".bot-bubble { background: #ffffff; color: #333; border: 1px solid rgba(118,75,162,0.1); }"
         "entry { background: #ffffff; color: #333; border-radius: 24px; border: 1px solid rgba(118,75,162,0.15); padding: 12px 20px; font-size: 14px; }"
