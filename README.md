@@ -14,7 +14,12 @@ This project is organized into the following sub-project series, each with its o
 - **[베이직 버전-Basic Version](file:///home/rheehose/문서/rheeworks_forconvinience/Typer-타이퍼%20Series/베이직%20버전-Basic%20Version/)**: 원천 텍스트를 읽어 키보드 입력 시 가짜로 타이핑해주는 프리미엄 도구.
 - **[포모도로 버전-Pomodoro Version](file:///home/rheehose/문서/rheeworks_forconvinience/Typer-타이퍼%20Series/포모도로%20버전-Pomodoro%20Version/)**: 포모도로 타이머와 가짜 타이핑 비밀 콘솔이 결합된 도구.
 
-### 2. Automaker-오토메이커 Series
+### 2. Rucia-루시아 Series [NEW]
+- **Dashboard-대시보드**: 공부/코딩 시간 통계 대시보드 (Premium UI) / Study/Coding time stats dashboard.
+- **Backup-백업기**: 실습실 파일 자동 백업 도구 / Lab file auto-backup tool.
+- **Tester-테스트기**: 알고리즘 문제풀이 로직 테스트기 / Algorithm problem auto-tester.
+
+### 3. Automaker-오토메이커 Series
 - **[클리커-Clicker](file:///home/rheehose/문서/rheeworks_forconvinience/Automaker-오토메이커%20Series/클리커-Clicker/)**: 고성능 마우스 오토 클릭커 도구.
 - **[텍스트생성기-Text Generator](file:///home/rheehose/문서/rheeworks_forconvinience/Automaker-오토메이커%20Series/텍스트생성기-Text%20Generator/)**
   - 다양한 언어와 옵션의 더미 텍스트 생성 도구
