@@ -34,9 +34,9 @@
 
 **By Antigravity (Gemini) / Antigravity (Gemini)에 의해**
 
-- ✅ **Dashboard-대시보드**: SQLite 및 Matplotlib 연동 통계 시각화 도구 구현 완료 / Implemented stats visualization tool with SQLite and Matplotlib
-- ✅ **Backup-백업기**: 5분 주기 자동 백업 및 구세대 데이터 정리 로직 구현 완료 / Implemented 5min auto-backup and old data cleanup logic
-- ✅ **Tester-테스트기**: 서브프로세스 기반 알고리즘 자동 테스트 및 결과 비교기 구현 완료 / Implemented subprocess-based auto-tester and result comparator
+- ✅ **Pris-프리스**: SQLite 및 Matplotlib 연동 통계 시각화 도구 구현 완료 / Implemented stats visualization tool with SQLite and Matplotlib
+- ✅ **Lavendar-라벤다르**: 5분 주기 자동 백업 및 구세대 데이터 정리 로직 구현 완료 / Implemented 5min auto-backup and old data cleanup logic
+- ✅ **Frytesty-프라이테스티**: 서브프로세스 기반 알고리즘 자동 테스트 및 결과 비교기 구현 완료 / Implemented subprocess-based auto-tester and result comparator
 - ✅ **Infrastructure**: 8종 프로젝트 전체에 대한 CI/CD 파이프라인(3대 OS 바이너리, 도커, 릴리스) 통합 완료 / Integrated CI/CD pipeline for all 8 projects
 
 ---

@@ -21,9 +21,9 @@ This project is a monorepo containing multiple convenience tools.
    - 포모도로 버전-Pomodoro Version: 포모도로 타이머 + 숨겨진 타이핑 도구 (Premium UI)
 
 2. **Rucia-루시아 Series**
-   - Dashboard-대시보드: 공부/코딩 시간 통계 대시보드 (Premium UI)
-   - Backup-백업기: 실전성 최강 실습실 자동 백업 도구
-   - Tester-테스트기: 알고리즘 문제풀이 로컬 테스트기
+   - Pris-프리스: 공부/코딩 시간 통계 대시보드 (Premium UI)
+   - Lavendar-라벤다르: 실전성 최강 실습실 자동 백업 도구
+   - Frytesty-프라이테스티: 알고리즘 문제풀이 로컬 테스트기
 
 3. **Automaker-오토메이커 Series**
    - 클리커-Clicker: 프리미엄 오토 클릭커 도구

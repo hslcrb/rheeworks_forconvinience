@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Tester-기 - Algorithm Problem Auto-Tester
-# 테스트기 - 알고리즘 문제풀이 자동 테스트기
+# Frytesty - Algorithm Problem Auto-Tester
+# Frytesty - 알고리즘 문제풀이 자동 테스트기
 # Rheehose (Rhee Creative) 2008-2026
 # Licensed under Apache-2.0
 
@@ -13,12 +13,12 @@ from tkinter import filedialog, messagebox
 import customtkinter as ctk
 from PIL import Image
 
-class RuciaTester(ctk.CTk):
+class Frytesty(ctk.CTk):
     def __init__(self):
         super().__init__()
 
         # --- Configuration / 설정 ---
-        self.title("RUCIA TESTER")
+        self.title("FRYTESTY")
         self.geometry("1100x800")
         ctk.set_appearance_mode("dark")
         
@@ -46,7 +46,7 @@ class RuciaTester(ctk.CTk):
         self.sidebar = ctk.CTkFrame(self, width=220, corner_radius=0, fg_color=self.card_color, border_width=1, border_color="#30363d")
         self.sidebar.pack(side="left", fill="y")
         
-        ctk.CTkLabel(self.sidebar, text="RUCIA", font=("Inter", 28, "bold"), text_color=self.accent_color).pack(pady=(30, 5))
+        ctk.CTkLabel(self.sidebar, text="FRYTESTY", font=("Inter", 28, "bold"), text_color=self.accent_color).pack(pady=(30, 5))
         ctk.CTkLabel(self.sidebar, text="TESTER", font=("Inter", 12), text_color=self.dim_text).pack(pady=(0, 30))
 
         # Copyright
@@ -197,5 +197,5 @@ class RuciaTester(ctk.CTk):
                 ctk.CTkLabel(diff_frame, text=f"Error: {error}", font=("JetBrains Mono", 10), text_color="#f85149", wraplenght=600).pack(fill="x", padx=10, pady=2)
 
 if __name__ == "__main__":
-    app = RuciaTester()
+    app = Frytesty()
     app.mainloop()

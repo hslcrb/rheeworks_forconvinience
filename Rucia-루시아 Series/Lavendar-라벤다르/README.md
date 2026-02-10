@@ -1,4 +1,4 @@
-# Rucia Backup / 루시아 백업기
+# Lavendar / 라벤다르
 
 **실습실 환경에서 파일 유실을 방지하는 실전형 자동 백업 도구**  
 **A practical auto-backup tool to prevent file loss in laboratory environments.**

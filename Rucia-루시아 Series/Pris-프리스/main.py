@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Dashboard - Study/Coding Time Tracker
-# Dashboard - 공부/코딩 시간 관리 대시보드
+# Pris - Study/Coding Time Tracker
+# Pris - 공부/코딩 시간 관리 대시보드
 # Rheehose (Rhee Creative) 2008-2026
 # Licensed under Apache-2.0
 
@@ -16,12 +16,12 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from PIL import Image
 
-class RuciaDashboard(ctk.CTk):
+class Pris(ctk.CTk):
     def __init__(self):
         super().__init__()
 
         # --- Configuration / 설정 ---
-        self.title("RUCIA DASHBOARD")
+        self.title("PRIS")
         self.geometry("1100x750")
         ctk.set_appearance_mode("dark")
         
@@ -71,7 +71,7 @@ class RuciaDashboard(ctk.CTk):
         self.sidebar = ctk.CTkFrame(self, width=220, corner_radius=0, fg_color=self.card_color, border_width=1, border_color="#30363d")
         self.sidebar.pack(side="left", fill="y")
         
-        ctk.CTkLabel(self.sidebar, text="RUCIA", font=("Inter", 28, "bold"), text_color=self.accent_color).pack(pady=(30, 5))
+        ctk.CTkLabel(self.sidebar, text="PRIS", font=("Inter", 28, "bold"), text_color=self.accent_color).pack(pady=(30, 5))
         ctk.CTkLabel(self.sidebar, text="DASHBOARD", font=("Inter", 12), text_color=self.dim_text).pack(pady=(0, 30))
 
         # Nav Buttons
@@ -245,5 +245,5 @@ class RuciaDashboard(ctk.CTk):
         plt.close(fig)
 
 if __name__ == "__main__":
-    app = RuciaDashboard()
+    app = Pris()
     app.mainloop()

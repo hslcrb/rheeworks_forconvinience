@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Backup-기 - Laboratory File Auto-Backup Tool
-# 백업기 - 실습실 파일 자동 백업 도구
+# Lavendar - Laboratory File Auto-Backup Tool
+# Lavendar - 실습실 파일 자동 백업 도구
 # Rheehose (Rhee Creative) 2008-2026
 # Licensed under Apache-2.0
 
@@ -14,12 +14,12 @@ from tkinter import filedialog, messagebox
 import customtkinter as ctk
 from PIL import Image
 
-class RuciaBackup(ctk.CTk):
+class Lavendar(ctk.CTk):
     def __init__(self):
         super().__init__()
 
         # --- Configuration / 설정 ---
-        self.title("RUCIA BACKUP")
+        self.title("LAVENDAR")
         self.geometry("900x650")
         ctk.set_appearance_mode("dark")
         
@@ -48,7 +48,7 @@ class RuciaBackup(ctk.CTk):
         self.sidebar = ctk.CTkFrame(self, width=200, corner_radius=0, fg_color=self.card_color, border_width=1, border_color="#30363d")
         self.sidebar.pack(side="left", fill="y")
         
-        ctk.CTkLabel(self.sidebar, text="RUCIA", font=("Inter", 28, "bold"), text_color=self.accent_color).pack(pady=(30, 5))
+        ctk.CTkLabel(self.sidebar, text="LAVENDAR", font=("Inter", 28, "bold"), text_color=self.accent_color).pack(pady=(30, 5))
         ctk.CTkLabel(self.sidebar, text="BACKUP", font=("Inter", 12), text_color=self.dim_text).pack(pady=(0, 30))
 
         # Copyright
@@ -185,5 +185,5 @@ class RuciaBackup(ctk.CTk):
             pass
 
 if __name__ == "__main__":
-    app = RuciaBackup()
+    app = Lavendar()
     app.mainloop()

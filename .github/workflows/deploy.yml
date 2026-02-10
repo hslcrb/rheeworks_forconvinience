@@ -62,14 +62,14 @@ jobs:
           - name: "typer-pomodoro"
             path: "Typer-타이퍼 Series/포모도로 버전-Pomodoro Version"
             script: "main.py"
-          - name: "rucia-dashboard"
-            path: "Rucia-루시아 Series/Dashboard-대시보드"
+          - name: "rucia-pris"
+            path: "Rucia-루시아 Series/Pris-프리스"
             script: "main.py"
-          - name: "rucia-backup"
-            path: "Rucia-루시아 Series/Backup-백업기"
+          - name: "rucia-lavendar"
+            path: "Rucia-루시아 Series/Lavendar-라벤다르"
             script: "main.py"
-          - name: "rucia-tester"
-            path: "Rucia-루시아 Series/Tester-테스트기"
+          - name: "rucia-frytesty"
+            path: "Rucia-루시아 Series/Frytesty-프라이테스티"
             script: "main.py"
           - name: "automaker-clicker"
             path: "Automaker-오토메이커 Series/클리커-Clicker"
@@ -135,12 +135,12 @@ jobs:
             path: "Typer-타이퍼 Series/베이직 버전-Basic Version"
           - name: "typer-pomodoro"
             path: "Typer-타이퍼 Series/포모도로 버전-Pomodoro Version"
-          - name: "rucia-dashboard"
-            path: "Rucia-루시아 Series/Dashboard-대시보드"
-          - name: "rucia-backup"
-            path: "Rucia-루시아 Series/Backup-백업기"
-          - name: "rucia-tester"
-            path: "Rucia-루시아 Series/Tester-테스트기"
+          - name: "rucia-pris"
+            path: "Rucia-루시아 Series/Pris-프리스"
+          - name: "rucia-lavendar"
+            path: "Rucia-루시아 Series/Lavendar-라벤다르"
+          - name: "rucia-frytesty"
+            path: "Rucia-루시아 Series/Frytesty-프라이테스티"
           - name: "automaker-clicker"
             path: "Automaker-오토메이커 Series/클리커-Clicker"
           - name: "automaker-textgen"
@@ -253,7 +253,7 @@ jobs:
             
             ## 📦 배포 프로젝트 / Projects
             - **Typer Series**: Basic, Pomodoro
-            - **Rucia Series**: Dashboard, Backup, Tester
+            - **Rucia Series**: Pris (Dashboard), Lavendar (Backup), Frytesty (Tester)
             - **Automaker Series**: Clicker, Text Generator, Template Generator
             
             ## 🚀 실행 파일 / Binaries
@@ -264,9 +264,9 @@ jobs:
             ```bash
             docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/typer-basic:latest
             docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/typer-pomodoro:latest
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/rucia-dashboard:latest
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/rucia-backup:latest
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/rucia-tester:latest
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/rucia-pris:latest
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/rucia-lavendar:latest
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/rucia-frytesty:latest
             docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/automaker-clicker:latest
             docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/automaker-textgen:latest
             docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/automaker-templategen:latest

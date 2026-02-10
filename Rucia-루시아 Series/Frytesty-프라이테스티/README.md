@@ -1,4 +1,4 @@
-# Rucia Tester / 루시아 테스트기
+# Frytesty / 프라이테스티
 
 **알고리즘 문제 풀이 효율을 극대화하는 로컬 자동 채점기**  
 **A local auto-judge for maximizing algorithm problem-solving efficiency.**

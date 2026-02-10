@@ -15,9 +15,9 @@ This project is organized into the following sub-project series, each with its o
 - **[포모도로 버전-Pomodoro Version](file:///home/rheehose/문서/rheeworks_forconvinience/Typer-타이퍼%20Series/포모도로%20버전-Pomodoro%20Version/)**: 포모도로 타이머와 가짜 타이핑 비밀 콘솔이 결합된 도구.
 
 ### 2. Rucia-루시아 Series [NEW]
-- **Dashboard-대시보드**: 공부/코딩 시간 통계 대시보드 (Premium UI) / Study/Coding time stats dashboard.
-- **Backup-백업기**: 실습실 파일 자동 백업 도구 / Lab file auto-backup tool.
-- **Tester-테스트기**: 알고리즘 문제풀이 로직 테스트기 / Algorithm problem auto-tester.
+- **[Pris-프리스](file:///home/rheehose/문서/rheeworks_forconvinience/Rucia-루시아%20Series/Pris-프리스/)**: 공부/코딩 시간 통계 및 가시화 대시보드 (Premium UI) / Study/Coding time stats dashboard.
+- **[Lavendar-라벤다르](file:///home/rheehose/문서/rheeworks_forconvinience/Rucia-루시아%20Series/Lavendar-라벤다르/)**: 실습실 파일 자동 백업 및 관리 도구 / Lab file auto-backup & management tool.
+- **[Frytesty-프라이테스티](file:///home/rheehose/문서/rheeworks_forconvinience/Rucia-루시아%20Series/Frytesty-프라이테스티/)**: 알고리즘 문제풀이 로직 자동 테스트기 / Algorithm problem auto-tester.
 
 ### 3. Automaker-오토메이커 Series
 - **[클리커-Clicker](file:///home/rheehose/문서/rheeworks_forconvinience/Automaker-오토메이커%20Series/클리커-Clicker/)**: 고성능 마우스 오토 클릭커 도구.

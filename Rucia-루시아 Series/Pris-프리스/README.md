@@ -1,4 +1,4 @@
-# Rucia Dashboard / 루시아 대시보드
+# Pris / 프리스
 
 **공부와 코딩 시간을 시각적으로 관리하는 프리미엄 대시보드**  
 **Premium dashboard for visualizing and managing study and coding time.**
