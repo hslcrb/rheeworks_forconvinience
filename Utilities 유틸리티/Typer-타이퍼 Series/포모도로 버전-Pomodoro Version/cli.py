@@ -10,7 +10,17 @@ import sys
 import argparse
 import threading
 import datetime
+import locale
 from pynput import keyboard
+
+def get_msg(ko_msg, en_msg):
+    try:
+        lang, _ = locale.getdefaultlocale()
+        if lang and lang.startswith('ko'):
+            return f"{ko_msg} / {en_msg}"
+    except:
+        pass
+    return en_msg
 
 class PomodoroCLI:
     def __init__(self, work_min=25):
@@ -24,18 +34,18 @@ class PomodoroCLI:
 
     def start(self):
         self.running = True
-        print(f"\n[POMODORO] Focus session started ({self.work_seconds//60} min)")
-        print("Press Ctrl+C to cancel.")
+        print(f"\n[POMODORO] {get_msg('집중 세션 시작', 'Focus session started')} ({self.work_seconds//60} min)")
+        print(get_msg("취소하려면 Ctrl+C를 누르세요.", "Press Ctrl+C to cancel."))
         try:
             while self.work_seconds > 0 and self.running:
-                sys.stdout.write(f"\rTime Remaining: {self.format_time(self.work_seconds)}")
+                sys.stdout.write(f"\r{get_msg('남은 시간', 'Time Remaining')}: {self.format_time(self.work_seconds)}")
                 sys.stdout.flush()
                 time.sleep(1)
                 self.work_seconds -= 1
             if self.work_seconds <= 0:
-                print("\n\n[FOCUS DONE] Time to rest!")
+                print(f"\n\n[FOCUS DONE] {get_msg('휴식 시간입니다!', 'Time to rest!')}")
         except KeyboardInterrupt:
-            print("\n\n[CANCELLED] Pomodoro timer stopped.")
+            print(f"\n\n[CANCELLED] {get_msg('포모도로 타이머가 중지되었습니다.', 'Pomodoro timer stopped.')}")
 
 class TyperEngine:
     def __init__(self, source, target):
@@ -50,13 +60,13 @@ class TyperEngine:
             self.buffer_text = f.read()
         
         if os.path.exists(self.target) and os.path.getsize(self.target) > 0:
-            print("Error: Target file must be empty.")
+            print(get_msg("오류: 대상 파일은 반드시 비어 있어야 합니다.", "Error: Target file must be empty."))
             return
 
         open(self.target, "w", encoding="utf-8").close()
         self.recording = True
-        print(f"\n[ENGINE] Fake Typing started. TARGET: {self.target}")
-        print("Press ESC to stop.")
+        print(f"\n[ENGINE] {get_msg('가짜 타이핑 시작', 'Fake Typing started')}. TARGET: {self.target}")
+        print(get_msg("중지하려면 ESC를 누르세요.", "Press ESC to stop."))
         
         with keyboard.Listener(on_press=self.on_press) as listener:
             listener.join()
@@ -80,7 +90,7 @@ class TyperEngine:
         self.cursor += count
         with open(self.target, "a", encoding="utf-8") as f:
             f.write(chunk)
-        sys.stdout.write(f"\rTyping Progress: {self.cursor}/{len(self.buffer_text)}")
+        sys.stdout.write(f"\r{get_msg('타이핑 진행률', 'Typing Progress')}: {self.cursor}/{len(self.buffer_text)}")
         sys.stdout.flush()
 
 def main():

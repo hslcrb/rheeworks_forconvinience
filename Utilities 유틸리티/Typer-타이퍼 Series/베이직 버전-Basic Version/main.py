@@ -16,6 +16,16 @@ import random
 from pynput import keyboard
 import threading
 import os
+import locale
+
+def get_system_lang():
+    try:
+        lang, _ = locale.getdefaultlocale()
+        if lang and lang.startswith('ko'):
+            return 'ko'
+    except:
+        pass
+    return 'en'
 
 try:
     import customtkinter as ctk
@@ -25,34 +35,46 @@ except ImportError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "customtkinter"])
     import customtkinter as ctk
 
-# ======================
-# Global State / 전역 상태
-# ======================
-source_path = ""  # 원천 텍스트 경로 / Source text path
-target_path = ""  # 대상 텍스트 경로 / Target text path
-
-buffer_text = ""  # 버퍼 텍스트 / Buffer text content
-cursor = 0        # 현재 커서 위치 / Current cursor position
-recording = False # 녹화 상태 / Recording status
-listener = None   # 키보드 리스너 / Keyboard listener
-
-# HSL-inspired Color Palette / HSL 기반 컬러 팔레트
-COLORS = {
-    "bg": "#121212",        # Deep dark
-    "card": "#1E1E1E",      # Soft dark card
-    "accent": "#6C5CE7",    # Premium Purple
-    "secondary": "#A29BFE", # Light Purple
-    "success": "#00B894",   # Mint Green
-    "danger": "#D63031",    # Soft Red
-    "text": "#F5F5F5"       # Off-white
+# i18n Translations / 번역 정보
+TRANSLATIONS = {
+    'ko': {
+        'subtitle': '가짜 타이핑 복사 / Fake Typing Copier',
+        'select_source_btn': '원천 선택 / SELECT SOURCE',
+        'select_target_btn': '대상 선택 / SELECT TARGET',
+        'not_selected': '선택 안됨 / Not Selected',
+        'ready': '준비 완료 / READY',
+        'rec': '● 녹화 중 / REC',
+        'start_rec': '녹화 시작 / START RECORDING',
+        'stop_rec': '녹화 중지 / STOP RECORDING',
+        'error': '오류 / Error',
+        'target_empty_error': '대상 텍스트는 비어 있어야 합니다! / Target must be empty!',
+        'source_select_title': '원천 텍스트 선택',
+        'target_select_title': '대상 텍스트 선택'
+    },
+    'en': {
+        'subtitle': 'Fake Typing Copier',
+        'select_source_btn': 'SELECT SOURCE',
+        'select_target_btn': 'SELECT TARGET',
+        'not_selected': 'Not Selected',
+        'ready': 'READY',
+        'rec': '● REC',
+        'start_rec': 'START RECORDING',
+        'stop_rec': 'STOP RECORDING',
+        'error': 'Error',
+        'target_empty_error': 'Target must be empty!',
+        'source_select_title': 'Select Source Text',
+        'target_select_title': 'Select Target Text'
+    }
 }
+
+current_lang = get_system_lang()
 
 # ======================
 # File Selection / 파일 선택
 # ======================
 def select_source():
     global source_path
-    path = filedialog.askopenfilename(title="원천 텍스트 선택")
+    path = filedialog.askopenfilename(title=TRANSLATIONS[current_lang]['source_select_title'])
     if path:
         source_path = path
         source_label.configure(text=os.path.basename(source_path))
@@ -60,14 +82,14 @@ def select_source():
 
 def select_target():
     global target_path
-    path = filedialog.asksaveasfilename(title="대상 텍스트 선택")
+    path = filedialog.asksaveasfilename(title=TRANSLATIONS[current_lang]['target_select_title'])
 
     if not path:
         return
 
     # Check if empty / 비어있는지 검사
     if os.path.exists(path) and os.path.getsize(path) > 0:
-        messagebox.showerror("오류 / Error", "대상 텍스트는 비어 있어야 합니다! / Target must be empty!")
+        messagebox.showerror(TRANSLATIONS[current_lang]['error'], TRANSLATIONS[current_lang]['target_empty_error'])
         return
 
     open(path, "w", encoding="utf-8").close()
@@ -124,19 +146,43 @@ def start_record():
         cursor = 0
         recording = True
 
-        status_badge.configure(text="● REC", text_color=COLORS["danger"])
-        start_btn.configure(text="STOP RECORDING", fg_color=COLORS["danger"])
+        status_badge.configure(text=TRANSLATIONS[current_lang]['rec'], text_color=COLORS["danger"])
+        start_btn.configure(text=TRANSLATIONS[current_lang]['stop_rec'], fg_color=COLORS["danger"])
 
         listener = keyboard.Listener(on_press=on_press)
         listener.start()
 
     else:
         recording = False
-        status_badge.configure(text="READY", text_color=COLORS["success"])
-        start_btn.configure(text="START RECORDING", fg_color=COLORS["accent"])
+        status_badge.configure(text=TRANSLATIONS[current_lang]['ready'], text_color=COLORS["success"])
+        start_btn.configure(text=TRANSLATIONS[current_lang]['start_rec'], fg_color=COLORS["accent"])
 
         if listener:
             listener.stop()
+
+def toggle_lang():
+    global current_lang
+    current_lang = 'en' if current_lang == 'ko' else 'ko'
+    update_ui()
+
+def update_ui():
+    lang = TRANSLATIONS[current_lang]
+    subtitle_label.configure(text=lang['subtitle'])
+    source_btn.configure(text=lang['select_source_btn'])
+    target_btn.configure(text=lang['select_target_btn'])
+    if not source_path:
+        source_label.configure(text=lang['not_selected'])
+    if not target_path:
+        target_label.configure(text=lang['not_selected'])
+    
+    if recording:
+        status_badge.configure(text=lang['rec'])
+        start_btn.configure(text=lang['stop_rec'])
+    else:
+        status_badge.configure(text=lang['ready'])
+        start_btn.configure(text=lang['start_rec'])
+    
+    lang_btn.configure(text=current_lang.upper())
 
 # ======================
 # GUI Setup / GUI 설정
@@ -160,7 +206,21 @@ title_label = ctk.CTkLabel(
     font=("Inter", 24, "bold"),
     text_color=COLORS["accent"]
 )
-title_label.pack(pady=(20, 10))
+title_label.pack(pady=(15, 5))
+
+# Language Toggle / 언어 토글
+lang_btn = ctk.CTkButton(
+    main_frame,
+    text=current_lang.upper(),
+    width=40,
+    height=25,
+    command=toggle_lang,
+    fg_color="transparent",
+    border_width=1,
+    border_color=COLORS["accent"],
+    text_color=COLORS["accent"]
+)
+lang_btn.place(relx=0.95, rely=0.05, anchor="ne")
 
 # Subtitle / 부제목
 subtitle_label = ctk.CTkLabel(
@@ -218,7 +278,7 @@ status_badge.pack(pady=(20, 0))
 # Start/Stop Button / 시작/정지 버튼
 start_btn = ctk.CTkButton(
     main_frame, 
-    text="START RECORDING", 
+    text=TRANSLATIONS[current_lang]['start_rec'], 
     state="disabled",
     command=start_record,
     fg_color="#444444",
@@ -228,6 +288,8 @@ start_btn = ctk.CTkButton(
     font=("Inter", 14, "bold")
 )
 start_btn.pack(pady=20, padx=40, fill="x")
+
+update_ui()
 
 # Branding / 브랜딩
 branding_label = ctk.CTkLabel(

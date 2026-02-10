@@ -13,6 +13,16 @@ import os
 import tkinter as tk
 from tkinter import filedialog, messagebox
 import json
+import locale
+
+def get_system_lang():
+    try:
+        lang, _ = locale.getdefaultlocale()
+        if lang and lang.startswith('ko'):
+            return 'ko'
+    except:
+        pass
+    return 'en'
 
 try:
     import customtkinter as ctk
@@ -105,11 +115,48 @@ WEB_HTML_TEMPLATE = """<!DOCTYPE html>
 # Logic / 로직
 # ======================
 
+# i18n Translations / 번역 정보
+TRANSLATIONS = {
+    'ko': {
+        'scaffolder': '만능 프로젝트 스캐폴더 / UNIVERSAL PROJECT SCAFFOLDER',
+        'subtitle': '다국어 프로젝트 템플릿 생성 / Multi-language Template Creation',
+        'project_type': '프로젝트 유형',
+        'project_name': '프로젝트명',
+        'port': '포트',
+        'target_dir': '대상 디렉토리: 선택 안됨',
+        'target_selected': '대상: {path}',
+        'choose_dir': '디렉토리 선택...',
+        'generate_btn': '프로젝트 생성 / GENERATE PROJECT',
+        'warning': '경고',
+        'select_dir_first': '디렉토리를 먼저 선택하세요!',
+        'success': '성공',
+        'created': '{ptype} 프로젝트가 생성되었습니다!',
+        'error': '오류'
+    },
+    'en': {
+        'scaffolder': 'UNIVERSAL PROJECT SCAFFOLDER',
+        'subtitle': 'Multi-language Template Creation',
+        'project_type': 'Project Type',
+        'project_name': 'Project Name',
+        'port': 'Port',
+        'target_dir': 'Target Directory: Not Selected',
+        'target_selected': 'Target: {path}',
+        'choose_dir': 'Choose Directory...',
+        'generate_btn': 'GENERATE PROJECT',
+        'warning': 'Warning',
+        'select_dir_first': 'Select a directory first!',
+        'success': 'Success',
+        'created': '{ptype} Project created!',
+        'error': 'Error'
+    }
+}
+
 class TemplateGenerator(ctk.CTk):
     def __init__(self):
         super().__init__()
+        self.current_lang = get_system_lang()
         self.title("Universal Template Gen - RheeWorks")
-        self.geometry("750x650")
+        self.geometry("750x700")
         self.configure(fg_color="#0D1117")
         self.setup_ui()
 
@@ -118,17 +165,20 @@ class TemplateGenerator(ctk.CTk):
         self.main_frame.pack(padx=20, pady=20, fill="both", expand=True)
 
         # Header
-        ctk.CTkLabel(self.main_frame, text="UNIVERSAL PROJECT SCAFFOLDER", 
-                    font=("Inter", 24, "bold"), text_color="#58A6FF").pack(pady=(20, 5))
-        ctk.CTkLabel(self.main_frame, text="Multi-language Template Creation / 다국어 템플릿 생성", 
-                    font=("Inter", 12), text_color="#8b949e").pack()
+        self.title_label = ctk.CTkLabel(self.main_frame, text=TRANSLATIONS[self.current_lang]['scaffolder'], 
+                    font=("Inter", 24, "bold"), text_color="#58A6FF")
+        self.title_label.pack(pady=(20, 5))
+        self.subtitle_label = ctk.CTkLabel(self.main_frame, text=TRANSLATIONS[self.current_lang]['subtitle'], 
+                    font=("Inter", 12), text_color="#8b949e")
+        self.subtitle_label.pack()
 
         # Input Container
         self.container = ctk.CTkFrame(self.main_frame, fg_color="transparent")
         self.container.pack(pady=20, padx=40, fill="both", expand=True)
 
         # 1. Project Type
-        ctk.CTkLabel(self.container, text="Project Type", font=("Inter", 12, "bold")).pack(anchor="w")
+        self.type_label = ctk.CTkLabel(self.container, text=TRANSLATIONS[self.current_lang]['project_type'], font=("Inter", 12, "bold"))
+        self.type_label.pack(anchor="w")
         self.type_var = ctk.StringVar(value="JSP")
         self.type_menu = ctk.CTkSegmentedButton(self.container, 
                                                values=["JSP", "Python", "C", "Node.js", "Web"],
@@ -136,28 +186,41 @@ class TemplateGenerator(ctk.CTk):
         self.type_menu.pack(fill="x", pady=5)
 
         # 2. General Settings
-        self.name_entry = self.create_input("Project Name / 프로젝트명", "MyAwesomeProject")
+        self.name_entry = self.create_input(TRANSLATIONS[self.current_lang]['project_name'], "MyAwesomeProject")
         
         # 3. Dynamic Inputs (Port, DB)
         self.dynamic_frame = ctk.CTkFrame(self.container, fg_color="transparent")
         self.dynamic_frame.pack(fill="x")
         
-        self.port_entry = self.create_input("Port / 포트", "8080", parent=self.dynamic_frame)
+        self.port_entry = self.create_input(TRANSLATIONS[self.current_lang]['port'], "8080", parent=self.dynamic_frame)
         self.db_var = ctk.StringVar(value="mysql")
         self.db_menu = ctk.CTkOptionMenu(self.dynamic_frame, values=["mysql", "oracle", "postgresql"],
                                         variable=self.db_var, fg_color="#21262d")
         
         # 4. Target Dir
-        self.path_label = ctk.CTkLabel(self.container, text="Target Directory: Not Selected", font=("Inter", 11), text_color="#8b949e")
+        self.path_label = ctk.CTkLabel(self.container, text=TRANSLATIONS[self.current_lang]['target_dir'], font=("Inter", 11), text_color="#8b949e")
         self.path_label.pack(anchor="w", pady=(10, 0))
-        self.path_btn = ctk.CTkButton(self.container, text="Choose Directory...", fg_color="#21262d", command=self.browse_path)
+        self.path_btn = ctk.CTkButton(self.container, text=TRANSLATIONS[self.current_lang]['choose_dir'], fg_color="#21262d", command=self.browse_path)
         self.path_btn.pack(fill="x", pady=5)
         self.target_path = ""
 
         # 5. Generate
-        self.gen_btn = ctk.CTkButton(self.main_frame, text="GENERATE PROJECT", command=self.generate,
+        self.gen_btn = ctk.CTkButton(self.main_frame, text=TRANSLATIONS[self.current_lang]['generate_btn'], command=self.generate,
                                     fg_color="#58A6FF", hover_color="#1F6FEB", height=50, font=("Inter", 15, "bold"))
-        self.gen_btn.pack(pady=20, padx=40, fill="x")
+        self.gen_btn.pack(pady=10, padx=40, fill="x")
+
+        # Language Toggle / 언어 토글
+        self.lang_btn = ctk.CTkButton(
+            self.main_frame,
+            text=self.current_lang.upper(),
+            width=60,
+            command=self.toggle_lang,
+            fg_color="transparent",
+            border_width=1,
+            border_color="#58A6FF",
+            text_color="#58A6FF"
+        )
+        self.lang_btn.pack(pady=(0, 20))
 
         self.on_type_change("JSP") # Initial state
 
@@ -165,10 +228,30 @@ class TemplateGenerator(ctk.CTk):
         target = parent if parent else self.container
         frame = ctk.CTkFrame(target, fg_color="transparent")
         frame.pack(fill="x", pady=5)
-        ctk.CTkLabel(frame, text=label, font=("Inter", 12, "bold")).pack(anchor="w")
+        lbl = ctk.CTkLabel(frame, text=label, font=("Inter", 12, "bold"))
+        lbl.pack(anchor="w")
         entry = ctk.CTkEntry(frame, placeholder_text=placeholder, fg_color="#0d1117", border_color="#30363d")
         entry.pack(fill="x", pady=2)
         return entry
+
+    def toggle_lang(self):
+        self.current_lang = 'en' if self.current_lang == 'ko' else 'ko'
+        self.update_ui()
+
+    def update_ui(self):
+        lang = TRANSLATIONS[self.current_lang]
+        self.title_label.configure(text=lang['scaffolder'])
+        self.subtitle_label.configure(text=lang['subtitle'])
+        self.type_label.configure(text=lang['project_type'])
+        # Note: Entry labels are hard to update post-creation without tracking them
+        # For simplicity, we'll focus on primary UI elements
+        if not self.target_path:
+            self.path_label.configure(text=lang['target_dir'])
+        else:
+            self.path_label.configure(text=lang['target_selected'].format(path=self.target_path))
+        self.path_btn.configure(text=lang['choose_dir'])
+        self.gen_btn.configure(text=lang['generate_btn'])
+        self.lang_btn.configure(text=self.current_lang.upper())
 
     def on_type_change(self, val):
         # Only JSP/Node need Port/DB
@@ -183,13 +266,14 @@ class TemplateGenerator(ctk.CTk):
         path = filedialog.askdirectory()
         if path:
             self.target_path = path
-            self.path_label.configure(text=f"Target: {path}", text_color="#58A6FF")
+            self.path_label.configure(text=TRANSLATIONS[self.current_lang]['target_selected'].format(path=path), text_color="#58A6FF")
 
     def generate(self):
         name = self.name_entry.get().strip() or "NewProject"
         ptype = self.type_var.get()
+        lang = TRANSLATIONS[self.current_lang]
         if not self.target_path:
-            messagebox.showwarning("Warning", "Select a directory first!")
+            messagebox.showwarning(lang['warning'], lang['select_dir_first'])
             return
         
         root = os.path.join(self.target_path, name)
@@ -200,9 +284,9 @@ class TemplateGenerator(ctk.CTk):
             elif ptype == "C": self.gen_c(root, name)
             elif ptype == "Node.js": self.gen_node(root, name)
             elif ptype == "Web": self.gen_web(root, name)
-            messagebox.showinfo("Success", f"{ptype} Project created!")
+            messagebox.showinfo(lang['success'], lang['created'].format(ptype=ptype))
         except Exception as e:
-            messagebox.showerror("Error", str(e))
+            messagebox.showerror(lang['error'], str(e))
 
     def gen_jsp(self, root, name):
         for d in ["src/main/java/servlet", "src/main/java/util", "src/main/webapp/WEB-INF"]:

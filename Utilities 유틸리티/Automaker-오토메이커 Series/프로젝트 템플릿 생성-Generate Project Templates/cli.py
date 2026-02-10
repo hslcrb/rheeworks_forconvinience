@@ -6,6 +6,16 @@
 import os
 import sys
 import argparse
+import locale
+
+def get_msg(ko_msg, en_msg):
+    try:
+        lang, _ = locale.getdefaultlocale()
+        if lang and lang.startswith('ko'):
+            return f"{ko_msg} / {en_msg}"
+    except:
+        pass
+    return en_msg
 
 # --- Templates (Extracted for CLI) ---
 INDEX_JSP = """<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
@@ -46,7 +56,7 @@ class GeneratorCLI:
         elif ptype == "web":
             self._gen_web(root, name)
         
-        print(f"Success: {ptype.upper()} project '{name}' created at {root}")
+        print(f"{get_msg('성공', 'Success')}: {ptype.upper()} {get_msg('프로젝트', 'project')} '{name}' {get_msg('가 생성되었습니다. 위치', 'created at')} {root}")
 
     def _gen_jsp(self, root, name):
         os.makedirs(os.path.join(root, "src/main/webapp/WEB-INF"), exist_ok=True)
@@ -67,11 +77,11 @@ class GeneratorCLI:
         with open(os.path.join(root, "index.html"), "w") as f: f.write(WEB_HTML.format(project_name=name))
 
 def main():
-    parser = argparse.ArgumentParser(description="Template Generator CLI")
-    parser.add_argument("--name", required=True, help="Project name")
-    parser.add_argument("--type", choices=['jsp', 'python', 'c', 'node', 'web'], required=True, help="Project type")
-    parser.add_argument("--path", default=".", help="Target parent directory")
-    parser.add_argument("--port", type=int, default=8080, help="Port (for Node/JSP)")
+    parser = argparse.ArgumentParser(description=get_msg("템플릿 생성기 CLI", "Template Generator CLI"))
+    parser.add_argument("--name", required=True, help=get_msg("프로젝트명", "Project name"))
+    parser.add_argument("--type", choices=['jsp', 'python', 'c', 'node', 'web'], required=True, help=get_msg("프로젝트 유형", "Project type"))
+    parser.add_argument("--path", default=".", help=get_msg("대상 부모 디렉토리", "Target parent directory"))
+    parser.add_argument("--port", type=int, default=8080, help=get_msg("포트 (Node/JSP용)", "Port (for Node/JSP)"))
     
     args = parser.parse_args()
     gen = GeneratorCLI(args.path)

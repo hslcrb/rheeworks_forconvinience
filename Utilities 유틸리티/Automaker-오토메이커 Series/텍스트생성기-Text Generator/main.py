@@ -13,6 +13,16 @@ import random
 import os
 import tkinter as tk
 from tkinter import messagebox
+import locale
+
+def get_system_lang():
+    try:
+        lang, _ = locale.getdefaultlocale()
+        if lang and lang.startswith('ko'):
+            return 'ko'
+    except:
+        pass
+    return 'en'
 
 try:
     import customtkinter as ctk
@@ -38,6 +48,36 @@ COLORS = {
     "text": "#C9D1D9",
     "success": "#238636"
 }
+
+# i18n Translations / 번역 정보
+TRANSLATIONS = {
+    'ko': {
+        'dummy_tool': '만능 더미 텍스트 도구 / Universal Dummy Text Tool',
+        'korean': '한국어 / Korean',
+        'latin': '라틴어 / Latin',
+        'paragraph_count': '단락 수 (예: 3) / Paragraph Count',
+        'generate': '텍스트 생성 / GENERATE',
+        'copy_all': '전체 복사 / COPY ALL',
+        'copy_title': '복사 / Copy',
+        'copy_success': '클립보드에 복사되었습니다! / Copied to clipboard!',
+        'warning': '경고 / Warning',
+        'error': '오류 / Error'
+    },
+    'en': {
+        'dummy_tool': 'Universal Dummy Text Tool',
+        'korean': 'Korean',
+        'latin': 'Latin',
+        'paragraph_count': 'Paragraph Count (ex: 3)',
+        'generate': 'GENERATE',
+        'copy_all': 'COPY ALL',
+        'copy_title': 'Copy',
+        'copy_success': 'Copied to clipboard!',
+        'warning': 'Warning',
+        'error': 'Error'
+    }
+}
+
+current_lang = get_system_lang()
 
 # ======================
 # Logic / 로직
@@ -65,7 +105,24 @@ def copy_to_clipboard():
     if content:
         root.clipboard_clear()
         root.clipboard_append(content)
-        messagebox.showinfo("복사 / Copy", "클립보드에 복사되었습니다! / Copied to clipboard!")
+        lang = TRANSLATIONS[current_lang]
+        messagebox.showinfo(lang['copy_title'], lang['copy_success'])
+
+def toggle_lang():
+    global current_lang
+    current_lang = 'en' if current_lang == 'ko' else 'ko'
+    update_ui()
+
+def update_ui():
+    lang = TRANSLATIONS[current_lang]
+    tool_label.configure(text=lang['dummy_tool'])
+    count_entry.configure(placeholder_text=lang['paragraph_count'])
+    gen_btn.configure(text=lang['generate'])
+    copy_btn.configure(text=lang['copy_all'])
+    lang_btn.configure(text=current_lang.upper())
+    
+    # Update Segmented Button values
+    mode_switch.configure(values=[lang['korean'], lang['latin']])
 
 # ======================
 # GUI Setup / GUI 설정
@@ -87,12 +144,13 @@ ctk.CTkLabel(
     text_color=COLORS["accent"]
 ).pack(pady=(20, 5))
 
-ctk.CTkLabel(
+tool_label = ctk.CTkLabel(
     main_frame, 
-    text="Universal Dummy Text Tool / 더미 텍스트 도구", 
+    text=TRANSLATIONS[current_lang]['dummy_tool'], 
     font=("Inter", 12),
     text_color="#8b949e"
-).pack()
+)
+tool_label.pack()
 
 # Input Group
 input_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
@@ -101,7 +159,7 @@ input_frame.pack(pady=20, padx=40, fill="x")
 mode_var = ctk.StringVar(value="Korean")
 mode_switch = ctk.CTkSegmentedButton(
     input_frame, 
-    values=["Korean", "Latin"],
+    values=[TRANSLATIONS[current_lang]['korean'], TRANSLATIONS[current_lang]['latin']],
     variable=mode_var,
     selected_color=COLORS["accent"],
     selected_hover_color=COLORS["secondary"],
@@ -111,7 +169,7 @@ mode_switch.pack(pady=10)
 
 count_entry = ctk.CTkEntry(
     input_frame, 
-    placeholder_text="Paragraph Count (ex: 3)",
+    placeholder_text=TRANSLATIONS[current_lang]['paragraph_count'],
     fg_color="#0d1117",
     border_color="#30363d"
 )
@@ -123,7 +181,7 @@ btn_frame.pack(fill="x", padx=40)
 
 gen_btn = ctk.CTkButton(
     btn_frame, 
-    text="GENERATE", 
+    text=TRANSLATIONS[current_lang]['generate'], 
     command=generate_text,
     fg_color=COLORS["accent"],
     hover_color=COLORS["secondary"],
@@ -134,7 +192,7 @@ gen_btn.pack(side="left", expand=True, fill="x", padx=(0, 5))
 
 copy_btn = ctk.CTkButton(
     btn_frame, 
-    text="COPY ALL", 
+    text=TRANSLATIONS[current_lang]['copy_all'], 
     command=copy_to_clipboard,
     fg_color="#21262d",
     hover_color="#30363d",
@@ -160,5 +218,18 @@ ctk.CTkLabel(
     font=("Inter", 10),
     text_color="#484f58"
 ).pack(side="bottom", pady=10)
+
+# Language Toggle / 언어 토글
+lang_btn = ctk.CTkButton(
+    root,
+    text=current_lang.upper(),
+    width=60,
+    command=toggle_lang,
+    fg_color="transparent",
+    border_width=1,
+    border_color=COLORS["accent"],
+    text_color=COLORS["accent"]
+)
+lang_btn.pack(side="bottom")
 
 root.mainloop()

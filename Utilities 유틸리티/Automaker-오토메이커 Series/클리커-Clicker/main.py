@@ -16,6 +16,16 @@ import random
 import os
 from pynput.mouse import Button, Controller
 from pynput.keyboard import Listener, KeyCode
+import locale
+
+def get_system_lang():
+    try:
+        lang, _ = locale.getdefaultlocale()
+        if lang and lang.startswith('ko'):
+            return 'ko'
+    except:
+        pass
+    return 'en'
 
 try:
     import customtkinter as ctk
@@ -43,6 +53,34 @@ COLORS = {
     "danger": "#E74C3C",
     "text": "#ECf0F1"
 }
+
+# i18n Translations / 번역 정보
+TRANSLATIONS = {
+    'ko': {
+        'premium_tool': '마우스 자동화 도구 / Mouse Automation Tool',
+        'delay_label': '지연 시간: {delay:.2f}s / DELAY',
+        'status_ready': '준비 완료 / IDLE',
+        'status_running': '● 수행 중 / ● RUNNING',
+        'start_btn': '시작 (S) / START (S)',
+        'stop_btn': '중지 (S) / STOP (S)',
+        'info': "Press 'S' to Start/Stop, 'E' to Exit\n'S'는 시작/정지, 'E'는 종료",
+        'warning': '경고 / Warning',
+        'error': '오류 / Error'
+    },
+    'en': {
+        'premium_tool': 'Mouse Automation Tool',
+        'delay_label': 'DELAY: {delay:.2f}s',
+        'status_ready': 'IDLE',
+        'status_running': '● RUNNING',
+        'start_btn': 'START (S)',
+        'stop_btn': 'STOP (S)',
+        'info': "Press 'S' to Start/Stop, 'E' to Exit",
+        'warning': 'Warning',
+        'error': 'Error'
+    }
+}
+
+current_lang = get_system_lang()
 
 class ClickMouse(threading.Thread):
     def __init__(self, delay, button):
@@ -93,15 +131,29 @@ def update_delay(val):
     global delay
     delay = float(val)
     mouse_clicker.delay = delay
-    delay_label.configure(text=f"DELAY: {delay:.2f}s")
+    delay_label.configure(text=TRANSLATIONS[current_lang]['delay_label'].format(delay=delay))
 
 def update_ui_state(is_running):
+    lang = TRANSLATIONS[current_lang]
     if is_running:
-        status_badge.configure(text="● RUNNING", text_color=COLORS["accent"])
-        start_btn.configure(text="STOP (S)", fg_color=COLORS["danger"])
+        status_badge.configure(text=lang['status_running'], text_color=COLORS["accent"])
+        start_btn.configure(text=lang['stop_btn'], fg_color=COLORS["danger"])
     else:
-        status_badge.configure(text="IDLE", text_color=COLORS["success"])
-        start_btn.configure(text="START (S)", fg_color=COLORS["accent"])
+        status_badge.configure(text=lang['status_ready'], text_color=COLORS["success"])
+        start_btn.configure(text=lang['start_btn'], fg_color=COLORS["accent"])
+
+def toggle_lang():
+    global current_lang
+    current_lang = 'en' if current_lang == 'ko' else 'ko'
+    update_ui()
+
+def update_ui():
+    lang = TRANSLATIONS[current_lang]
+    tool_label.configure(text=lang['premium_tool'])
+    delay_label.configure(text=lang['delay_label'].format(delay=delay))
+    update_ui_state(mouse_clicker.running)
+    info_label.configure(text=lang['info'])
+    lang_btn.configure(text=current_lang.upper())
 
 def toggle_clicking():
     if mouse_clicker.running:
@@ -131,24 +183,22 @@ main_frame.pack(padx=30, pady=30, fill="both", expand=True)
 
 # Title
 ctk.CTkLabel(
-    main_frame, 
-    text="CLICKER PRO", 
-    font=("Inter", 28, "bold"),
     text_color=COLORS["accent"]
 ).pack(pady=(25, 5))
 
-ctk.CTkLabel(
+tool_label = ctk.CTkLabel(
     main_frame, 
-    text="Mouse Automation Tool / 마우스 자동화", 
+    text=TRANSLATIONS[current_lang]['premium_tool'], 
     font=("Inter", 12),
     text_color="#666666"
-).pack()
+)
+tool_label.pack()
 
 # Control Card
 control_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
 control_frame.pack(pady=30, padx=40, fill="x")
 
-delay_label = ctk.CTkLabel(control_frame, text="DELAY: 0.10s", font=("JetBrains Mono", 14, "bold"))
+delay_label = ctk.CTkLabel(control_frame, text=TRANSLATIONS[current_lang]['delay_label'].format(delay=delay), font=("JetBrains Mono", 14, "bold"))
 delay_label.pack()
 
 delay_slider = ctk.CTkSlider(
@@ -166,7 +216,7 @@ delay_slider.pack(fill="x", pady=15)
 # Status
 status_badge = ctk.CTkLabel(
     main_frame, 
-    text="IDLE", 
+    text=TRANSLATIONS[current_lang]['status_ready'], 
     font=("JetBrains Mono", 16, "bold"),
     text_color=COLORS["success"]
 )
@@ -175,7 +225,7 @@ status_badge.pack(pady=10)
 # Start/Stop Button
 start_btn = ctk.CTkButton(
     main_frame, 
-    text="START (S)", 
+    text=TRANSLATIONS[current_lang]['start_btn'], 
     font=("Inter", 16, "bold"),
     fg_color=COLORS["accent"],
     text_color=COLORS["bg"],
@@ -189,11 +239,24 @@ start_btn.pack(pady=20, padx=50, fill="x")
 # Info
 info_label = ctk.CTkLabel(
     main_frame, 
-    text="Press 'S' to Start/Stop, 'E' to Exit\n'S'는 시작/정지, 'E'는 종료", 
+    text=TRANSLATIONS[current_lang]['info'], 
     font=("Inter", 11),
     text_color="#444444"
 )
-info_label.pack(side="bottom", pady=20)
+info_label.pack(side="bottom", pady=(10, 20))
+
+# Language Toggle / 언어 토글
+lang_btn = ctk.CTkButton(
+    main_frame,
+    text=current_lang.upper(),
+    width=60,
+    command=toggle_lang,
+    fg_color="transparent",
+    border_width=1,
+    border_color=COLORS["accent"],
+    text_color=COLORS["accent"]
+)
+lang_btn.pack(side="bottom")
 
 # Branding
 ctk.CTkLabel(

@@ -9,6 +9,16 @@ import time
 import datetime
 import sys
 import argparse
+import locale
+
+def get_msg(ko_msg, en_msg):
+    try:
+        lang, _ = locale.getdefaultlocale()
+        if lang and lang.startswith('ko'):
+            return f"{ko_msg} / {en_msg}"
+    except:
+        pass
+    return en_msg
 
 def log(message):
     timestamp = datetime.datetime.now().strftime("[%H:%M:%S]")
@@ -17,7 +27,7 @@ def log(message):
 def run_backup(source, dest, keep=10):
     try:
         if not os.path.exists(source):
-            print(f"Error: Source directory '{source}' does not exist.")
+            print(get_msg(f"오류: 원천 디렉토리 '{source}'가 존재하지 않습니다.", f"Error: Source directory '{source}' does not exist."))
             return False
         
         if not os.path.exists(dest):
@@ -26,15 +36,15 @@ def run_backup(source, dest, keep=10):
         now = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         target_path = os.path.join(dest, f"backup_{now}")
         
-        log(f"Starting backup to {os.path.basename(target_path)}...")
+        log(get_msg(f"{os.path.basename(target_path)}로 백업을 시작합니다...", f"Starting backup to {os.path.basename(target_path)}..."))
         shutil.copytree(source, target_path)
-        log("Backup Successful.")
+        log(get_msg("백업 성공.", "Backup Successful."))
         
         # Cleanup
         cleanup_old_backups(dest, keep)
         return True
     except Exception as e:
-        log(f"ERROR: {str(e)}")
+        log(f"{get_msg('오류', 'ERROR')}: {str(e)}")
         return False
 
 def cleanup_old_backups(dest, keep):
@@ -45,9 +55,9 @@ def cleanup_old_backups(dest, keep):
         while len(backups) > keep:
             oldest = backups.pop(0)
             shutil.rmtree(oldest)
-            log(f"Removed old backup: {os.path.basename(oldest)}")
+            log(f"{get_msg('오래된 백업 제거됨', 'Removed old backup')}: {os.path.basename(oldest)}")
     except Exception as e:
-        log(f"Cleanup Error: {str(e)}")
+        log(f"{get_msg('정리 오류', 'Cleanup Error')}: {str(e)}")
 
 def main():
     parser = argparse.ArgumentParser(description="Lavendar CLI - Auto-Backup Tool")
@@ -61,13 +71,13 @@ def main():
     if args.interval == 0:
         run_backup(args.source, args.dest, args.keep)
     else:
-        log(f"Starting continuous backup protection (every {args.interval} min)...")
+        log(get_msg(f"지속적인 백업 보호 시작 ({args.interval}분마다)...", f"Starting continuous backup protection (every {args.interval} min)..."))
         try:
             while True:
                 run_backup(args.source, args.dest, args.keep)
                 time.sleep(args.interval * 60)
         except KeyboardInterrupt:
-            log("Backup protection stopped by user.")
+            log(get_msg("사용자에 의해 백업 보호가 중지되었습니다.", "Backup protection stopped by user."))
 
 if __name__ == "__main__":
     main()

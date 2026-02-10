@@ -8,7 +8,17 @@ import random
 import time
 import sys
 import argparse
+import locale
 from pynput import keyboard
+
+def get_msg(ko_msg, en_msg):
+    try:
+        lang, _ = locale.getdefaultlocale()
+        if lang and lang.startswith('ko'):
+            return f"{ko_msg} / {en_msg}"
+    except:
+        pass
+    return en_msg
 
 class TyperCLI:
     def __init__(self, source, target):
@@ -21,24 +31,24 @@ class TyperCLI:
 
     def start(self):
         if not os.path.exists(self.source):
-            print(f"Error: Source file '{self.source}' not found.")
+            print(get_msg(f"오류: 원천 파일 '{self.source}'을 찾을 수 없습니다.", f"Error: Source file '{self.source}' not found."))
             return
 
         with open(self.source, "r", encoding="utf-8") as f:
             self.buffer_text = f.read()
 
         if os.path.exists(self.target) and os.path.getsize(self.target) > 0:
-            print(f"Error: Target file '{self.target}' is not empty.")
+            print(get_msg(f"오류: 대상 파일 '{self.target}'이 비어 있지 않습니다.", f"Error: Target file '{self.target}' is not empty."))
             return
             
         # Ensure target exists
         open(self.target, "w", encoding="utf-8").close()
 
         print(f"\nTyper CLI STARTED")
-        print(f"Source: {self.source}")
-        print(f"Target: {self.target}")
-        print("Fake typing is active. Any key you press will write to the target file.")
-        print("Press ESC to exit.")
+        print(get_msg(f"원천: {self.source}", f"Source: {self.source}"))
+        print(get_msg(f"대상: {self.target}", f"Target: {self.target}"))
+        print(get_msg("가짜 타이핑이 활성화되었습니다. 아무 키나 누르면 대상 파일에 기록됩니다.", "Fake typing is active. Any key you press will write to the target file."))
+        print(get_msg("종료하려면 ESC를 누르세요.", "Press ESC to exit."))
         print("="*40)
 
         self.recording = True
@@ -48,7 +58,7 @@ class TyperCLI:
 
     def on_press(self, key):
         if key == keyboard.Key.esc:
-            print("\nExiting Typer CLI...")
+            print(get_msg("\n타이퍼 CLI를 종료합니다...", "\nExiting Typer CLI..."))
             self.recording = False
             return False
 
@@ -56,7 +66,7 @@ class TyperCLI:
             return
 
         if self.cursor >= len(self.buffer_text):
-            print("\nEnd of source text reached.")
+            print(get_msg("\n원천 텍스트의 끝에 도달했습니다.", "\nEnd of source text reached."))
             return False
 
         try:
@@ -77,7 +87,7 @@ class TyperCLI:
         with open(self.target, "a", encoding="utf-8") as f:
             f.write(chunk)
             
-        sys.stdout.write(f"\rProgress: {self.cursor}/{len(self.buffer_text)} bytes")
+        sys.stdout.write(f"\r{get_msg('진행률', 'Progress')}: {self.cursor}/{len(self.buffer_text)} bytes")
         sys.stdout.flush()
 
 def main():

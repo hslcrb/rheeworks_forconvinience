@@ -9,6 +9,16 @@ import sys
 import argparse
 from pynput.mouse import Button, Controller
 from pynput.keyboard import Listener, KeyCode
+import locale
+
+def get_msg(ko_msg, en_msg):
+    try:
+        lang, _ = locale.getdefaultlocale()
+        if lang and lang.startswith('ko'):
+            return f"{ko_msg} / {en_msg}"
+    except:
+        pass
+    return en_msg
 
 class ClickerCLI:
     def __init__(self, delay=0.1, button='left'):
@@ -20,11 +30,11 @@ class ClickerCLI:
 
     def start_clicking(self):
         self.running = True
-        print("\n[CLICKER] Started.")
+        print(f"\n[CLICKER] {get_msg('시작됨', 'Started')}.")
 
     def stop_clicking(self):
         self.running = False
-        print("\n[CLICKER] Stopped.")
+        print(f"\n[CLICKER] {get_msg('중지됨', 'Stopped')}.")
 
     def toggle(self):
         if self.running:
@@ -44,7 +54,7 @@ class ClickerCLI:
         if key == KeyCode(char='s'):
             self.toggle()
         elif key == KeyCode(char='e'):
-            print("\n[CLICKER] Exiting...")
+            print(f"\n[CLICKER] {get_msg('종료 중...', 'Exiting...')}")
             self.exit_signal = True
             return False
 
@@ -57,9 +67,9 @@ def main():
     
     clicker = ClickerCLI(args.delay, args.button)
     
-    print(f"\nClicker CLI - Waiting for commands")
-    print(f"Delay: {args.delay}s | Button: {args.button}")
-    print("Press 's' to START/STOP, 'e' to EXIT")
+    print(get_msg(f"\nClicker CLI - 명령 대기 중", f"\nClicker CLI - Waiting for commands"))
+    print(f"{get_msg('지연 시간', 'Delay')}: {args.delay}s | {get_msg('버튼', 'Button')}: {args.button}")
+    print(get_msg("'s'는 시작/정지, 'e'는 종료", "Press 's' to START/STOP, 'e' to EXIT"))
     print("="*40)
     
     # Start engine thread
