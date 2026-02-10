@@ -1,0 +1,197 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  version:
+    name: Calculate Version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.calc_version.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Calculate version
+        id: calc_version
+        run: |
+          COMMIT_COUNT=$(git rev-list --count HEAD)
+          MAJOR=0
+          MINOR=$((COMMIT_COUNT / 10))
+          PATCH=$((COMMIT_COUNT % 10))
+          VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Calculated version: ${VERSION}"
+
+  build-binaries:
+    name: Build Binaries
+    needs: version
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        project:
+          - name: "typer-basic"
+            path: "Typer-타이퍼 Series/베이직 버전-Basic Version"
+            script: "main.py"
+          - name: "typer-pomodoro"
+            path: "Typer-타이퍼 Series/포모도로 버전-Pomodoro Version"
+            script: "main.py"
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          cd "${{ matrix.project.path }}"
+          pip install -r requirements.txt
+      
+      - name: Build with PyInstaller (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          cd "${{ matrix.project.path }}"
+          pyinstaller --onedir --windowed --name "${{ matrix.project.name }}" "${{ matrix.project.script }}"
+      
+      - name: Build with PyInstaller (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          cd "${{ matrix.project.path }}"
+          pyinstaller --onedir --windowed --name "${{ matrix.project.name }}" "${{ matrix.project.script }}"
+      
+      - name: Package build
+        run: |
+          cd "${{ matrix.project.path }}/dist"
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            7z a -tzip "${{ matrix.project.name }}-${{ needs.version.outputs.version }}-windows.zip" "${{ matrix.project.name }}"
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            zip -r "${{ matrix.project.name }}-${{ needs.version.outputs.version }}-macos.zip" "${{ matrix.project.name }}"
+          else
+            zip -r "${{ matrix.project.name }}-${{ needs.version.outputs.version }}-linux.zip" "${{ matrix.project.name }}"
+          fi
+        shell: bash
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.project.name }}-${{ matrix.os }}
+          path: ${{ matrix.project.path }}/dist/*.zip
+
+  build-docker:
+    name: Build and Push Docker Image
+    needs: version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=${{ needs.version.outputs.version }}
+            type=raw,value=latest
+      
+      - name: Create Dockerfile
+        run: |
+          cat > Dockerfile <<'EOF'
+          FROM python:3.11-slim
+          WORKDIR /app
+          COPY . .
+          RUN apt-get update && apt-get install -y \
+              python3-tk \
+              && rm -rf /var/lib/apt/lists/*
+          RUN pip install --no-cache-dir -r "Typer-타이퍼 Series/베이직 버전-Basic Version/requirements.txt"
+          RUN pip install --no-cache-dir -r "Typer-타이퍼 Series/포모도로 버전-Pomodoro Version/requirements.txt"
+          CMD ["/bin/bash"]
+          EOF
+      
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  create-release:
+    name: Create GitHub Release
+    needs: [version, build-binaries]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+      
+      - name: Prepare release assets
+        run: |
+          mkdir -p release-assets
+          find ./artifacts -type f -name "*.zip" -exec cp {} ./release-assets/ \;
+          ls -lh ./release-assets/
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.version.outputs.version }}
+          name: Release ${{ needs.version.outputs.version }}
+          body: |
+            # RheeWorks ForConvinience ${{ needs.version.outputs.version }}
+            
+            ## 변경사항 / Changes
+            - 자동 빌드 및 배포 / Automated build and deployment
+            
+            ## 다운로드 / Downloads
+            - **Windows**: `*-windows.zip`
+            - **macOS**: `*-macos.zip`
+            - **Linux**: `*-linux.zip`
+            
+            ## Docker
+            ```bash
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.version.outputs.version }}
+            ```
+            
+            ---
+            **Rheehose (Rhee Creative) 2008-2026**
+          files: ./release-assets/*.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

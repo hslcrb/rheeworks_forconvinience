@@ -1,0 +1,4 @@
+# Python Dependencies for Typer Basic Version / 타이퍼 베이직 버전 파이썬 종속성
+# Rheehose (Rhee Creative) 2008-2026
+
+pynput==1.7.6

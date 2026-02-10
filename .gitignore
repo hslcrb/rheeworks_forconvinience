@@ -1,0 +1,40 @@
+# Python virtual environments / 파이썬 가상환경
+venv/
+env/
+ENV/
+.venv
+
+# Python cache / 파이썬 캐시
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging / 배포 / 패키징
+*.egg-info/
+dist/
+build/
+*.egg
+
+# IDE / 통합 개발 환경
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files / 운영체제 파일
+.DS_Store
+Thumbs.db
+
+# Environment variables / 환경 변수
+.env
+.env.local
+
+# Recycle trash / 재활용 휴지통
+recycle_trash/
+
+# Agent brain / 에이전트 브레인
+agents_brain/
+
+# Logs / 로그
+*.log
