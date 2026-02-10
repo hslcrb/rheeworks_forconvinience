@@ -159,23 +159,26 @@ jobs:
       
       - name: Create Project-Specific Dockerfile
         shell: bash
+        env:
+          PROJ_PATH: ${{ matrix.project.path }}
         run: |
-          # Properly quote paths for Dockerfile / Dockerfile을 위한 경로 쿼팅 처리
-          REQ_PATH="${{ matrix.project.path }}/requirements.txt"
-          PROJ_PATH="${{ matrix.project.path }}"
-          
-          cat > Dockerfile.project <<EOF
+          # Use single quotes for EOF and env var for path safety / 경로 안전성을 위해 EOF에 작은따옴표를 사용하고 환경 변수 활용
+          cat > Dockerfile.project <<'EOF'
           FROM python:3.11-slim
           WORKDIR /app
           RUN apt-get update && apt-get install -y \
               python3-tk \
               libx11-6 \
               && rm -rf /var/lib/apt/lists/*
-          COPY "${REQ_PATH}" .
-          RUN pip install --no-cache-dir -r requirements.txt
-          COPY "${PROJ_PATH}" .
-          CMD ["python", "main.py"]
           EOF
+          
+          echo "COPY \"$PROJ_PATH/requirements.txt\" ." >> Dockerfile.project
+          echo "RUN pip install --no-cache-dir -r requirements.txt" >> Dockerfile.project
+          echo "COPY \"$PROJ_PATH\" ." >> Dockerfile.project
+          echo "CMD [\"python\", \"main.py\"]" >> Dockerfile.project
+          
+          echo "### Generated Dockerfile / 생성된 Dockerfile"
+          cat Dockerfile.project
       
       - name: Build and push
         uses: docker/build-push-action@v5
