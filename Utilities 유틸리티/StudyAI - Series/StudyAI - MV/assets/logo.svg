@@ -1,28 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="150" height="150" viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg">
-    <!-- Simple AI brain/chip icon -->
     <g transform="translate(75,75)">
-        <!-- Central square (chip) -->
-        <rect x="-25" y="-25" width="50" height="50" fill="none" stroke="#000000" stroke-width="3" />
+        <!-- Book/Study icon -->
+        <!-- Open book pages -->
+        <path d="M -40 -20 L -40 30 L 0 25 L 0 -25 Z" fill="none" stroke="#000000" stroke-width="4" />
+        <path d="M 0 -25 L 0 25 L 40 30 L 40 -20 Z" fill="none" stroke="#000000" stroke-width="4" />
 
-        <!-- Connection lines (pins) -->
-        <line x1="-25" y1="-15" x2="-40" y2="-15" stroke="#000000" stroke-width="2" />
-        <line x1="-25" y1="0" x2="-40" y2="0" stroke="#000000" stroke-width="2" />
-        <line x1="-25" y1="15" x2="-40" y2="15" stroke="#000000" stroke-width="2" />
+        <!-- Book spine -->
+        <line x1="0" y1="-25" x2="0" y2="25" stroke="#000000" stroke-width="4" />
 
-        <line x1="25" y1="-15" x2="40" y2="-15" stroke="#000000" stroke-width="2" />
-        <line x1="25" y1="0" x2="40" y2="0" stroke="#000000" stroke-width="2" />
-        <line x1="25" y1="15" x2="40" y2="15" stroke="#000000" stroke-width="2" />
-
-        <line x1="-15" y1="-25" x2="-15" y2="-40" stroke="#000000" stroke-width="2" />
-        <line x1="0" y1="-25" x2="0" y2="-40" stroke="#000000" stroke-width="2" />
-        <line x1="15" y1="-25" x2="15" y2="-40" stroke="#000000" stroke-width="2" />
-
-        <line x1="-15" y1="25" x2="-15" y2="40" stroke="#000000" stroke-width="2" />
-        <line x1="0" y1="25" x2="0" y2="40" stroke="#000000" stroke-width="2" />
-        <line x1="15" y1="25" x2="15" y2="40" stroke="#000000" stroke-width="2" />
-
-        <!-- AI text -->
-        <text x="0" y="8" text-anchor="middle" font-size="20" font-weight="bold" fill="#000000">AI</text>
+        <!-- Sparkle/AI indicator (top right) -->
+        <circle cx="32" cy="-32" r="3" fill="#000000" />
+        <line x1="32" y1="-40" x2="32" y2="-24" stroke="#000000" stroke-width="2" />
+        <line x1="24" y1="-32" x2="40" y2="-32" stroke="#000000" stroke-width="2" />
     </g>
 </svg>
