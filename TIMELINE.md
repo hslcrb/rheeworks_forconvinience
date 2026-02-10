@@ -23,11 +23,11 @@
 - ✅ **Pomodoro Version / 포모도로 버전**: 미니멀리즘 디자인 및 다이나믹 타이머 UI 적용 / Applied minimalist design and dynamic timer UI
 - ✅ **Standardization / 표준화**: HSL 기반 컬러 팔레트 및 프리미엄 서체 (Inter, JetBrains Mono) 일괄 적용 / Unified HSL color palette and premium fonts
 
-### Project Expansion / 프로젝트 확장
+### CI/CD Optimization & Verification / CI/CD 최적화 및 검증
 
-- ✅ **Automaker Series / 오토메이커 시리즈**: 구조 초기화 및 주요 도구 개발 완료 / Initialized structure and developed key tools
-- ✅ **Clicker / 클리커**: 프리미엄 오토 클릭커 구현 완 / Implemented premium auto-clicker
-- ✅ **Text Generator / 텍스트 생성기**: 다국어 더미 텍스트 생성기 구현 완료 / Implemented multi-language dummy text generator
+- ✅ **Dependency Audit**: 모든 서브 프로젝트의 의존성 설치 및 실행 환경 검증 완료 / Verified dependency installation and runtime for all projects
+- ✅ **Monorepo deploy.yml**: 4개 프로젝트 각각의 3대 OS 바이너리 및 도커 이미지 자동 배포 최적화 / Optimized deploy.yml for individual 3-OS binaries and Docker images
+- ✅ **Full Archive**: 프로젝트 전체 압축본 자동 릴리스 기능 추가 / Added automated full project archive feature
 
 ---
 
