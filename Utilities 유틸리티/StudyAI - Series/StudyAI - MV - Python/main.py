@@ -132,6 +132,23 @@ SYSTEM_PROMPT = (
     "Never pad responses unnecessarily. Be precise and useful."
 )
 
+def _get_display_width(text):
+    """Calculate display width of string (Korean = 2 units) / 문자열 표시 너비 계산 (한글=2칸)"""
+    width = 0
+    for char in text:
+        if ord(char) > 0x7F:
+            width += 2
+        else:
+            width += 1
+    return width
+
+def _center_text(text, width):
+    """Centers text based on display width / 표시 너비 기준 가운데 정렬"""
+    d_width = _get_display_width(text)
+    pad = (width - d_width) // 2
+    return " " * pad + text + " " * (width - d_width - pad)
+
+
 
 class StreamSignals(QObject):
     """Signals for thread-safe streaming updates / 스레드 안전 스트리밍 업데이트 시그널"""
@@ -768,10 +785,18 @@ class StudyAITerminal(QMainWindow):
         self.on_enter()
 
     def sync_language_state(self):
+        """Syncs all lang-related states / 모든 언어 관련 상태 동기화"""
         is_ko = (self.ui_lang == "ko")
         self.input_field.set_mode(is_ko)
         self.update_ui_texts()
         self.update_lang_btn_style()
+        
+        # If no conversation yet, refresh banner to show new language
+        # 대화가 시작되지 않았다면 새 언어로 배너를 새로고침
+        if len(self.conversation_history) == 0:
+            self.terminal.clear()
+            self.show_banner()
+
 
     def on_mode_changed(self, is_ko):
         """Handle mode change from hotkey / 핫키를 통한 모드 변경 처리"""
@@ -791,6 +816,12 @@ class StudyAITerminal(QMainWindow):
         self.btn_reset.setText(strs["btn_reset"])
         self.btn_draw.setText(strs["btn_draw"])
         self.prompt_label.setText(strs["prompt"])
+        
+        # Tooltips update / 툴팁 업데이트
+        self.btn_clear.setToolTip(strs["btn_clear"])
+        self.btn_reset.setToolTip(strs["btn_reset"])
+        self.btn_draw.setToolTip(strs["btn_draw"])
+
 
     def update_lang_btn_style(self):
         """Update button appearance / 버튼 외형 업데이트"""
@@ -852,17 +883,19 @@ class StudyAITerminal(QMainWindow):
         strs = UI_STRINGS[self.ui_lang]
         greeting = random.choice(GREETINGS[self.ui_lang])
         
+        # Use 48 units width box / 48칸 너비 박스 사용
         BOX_W = 48
         title = strs["banner_title"]
         subtitle = strs["banner_sub"]
         
         self.append_text("╔" + "═" * BOX_W + "╗\n", "#6aff6a")
-        self.append_text("║" + title.center(BOX_W - 2) + "║\n", "#6aff6a")
-        self.append_text("║" + subtitle.center(BOX_W - 2) + "║\n", "#888888")
+        self.append_text("║" + _center_text(title, BOX_W) + "║\n", "#6aff6a")
+        self.append_text("║" + _center_text(subtitle, BOX_W) + "║\n", "#888888")
         self.append_text("╚" + "═" * BOX_W + "╝\n", "#6aff6a")
         self.append_text(f"\n  {greeting}\n", "#aaaaaa")
         self.append_text(f"  {strs['banner_hint']}\n", "#666666")
         self.append_text(f"  {strs['banner_cmd']}\n\n", "#666666")
+
     
     def on_enter(self):
         """Handle user input / 사용자 입력 처리"""
