@@ -415,7 +415,11 @@ class HangulLineEdit(QLineEdit):
         # Setup autocompletion / 자동완성 설정
         from PySide6.QtWidgets import QCompleter
         from PySide6.QtCore import QStringListModel
-        self.commands = ["/session_clear", "/sclear"]
+        self.commands = [
+            "/clear", "/help", "/exit", 
+            "/session_clear", "/sclear",
+            "/cancel_clear", "/cclear"
+        ]
         self.completer = QCompleter(self.commands, self)
         self.completer.setCaseSensitivity(Qt.CaseInsensitive)
         self.completer.setCompletionMode(QCompleter.PopupCompletion)
@@ -565,6 +569,7 @@ class StudyAITerminal(QMainWindow):
         self.current_response = ""
         self.dot_count = 0
         self.dot_timer = None
+        self.last_screen_html = "" # For /cancel_clear restore
         
         self.signals = StreamSignals()
         self.signals.chunk_received.connect(self.on_chunk_received)
@@ -703,7 +708,7 @@ class StudyAITerminal(QMainWindow):
         self.append_text("╚" + "═" * BOX_W + "╝\n", "#6aff6a")
         self.append_text(f"\n  {greeting}\n", "#aaaaaa")
         self.append_text("  Type your question and press Enter.\n", "#666666")
-        self.append_text("  Commands: /clear, /help, /exit\n\n", "#666666")
+        self.append_text("  Commands: /clear, /sclear, /cclear, /help, /exit\n\n", "#666666")
     
     def on_enter(self):
         """Handle user input / 사용자 입력 처리"""
@@ -719,11 +724,36 @@ class StudyAITerminal(QMainWindow):
 
         # Handle slash commands / 슬래시 명령어 처리
         if user_input in ("/session_clear", "/sclear"):
+            # RESET BOTH: Memory and screen / 기억과 화면 모두 초기화
             self.conversation_history = []
             self.total_tokens = 0
             self.terminal.clear()
             self.show_banner()
-            self.append_text("\n[SYSTEM] Conversation history cleared. / 대화 내역이 초기화되었습니다.\n", "#569cd6")
+            self.append_text("\n[SYSTEM] Session and memory cleared. / 세션 및 AI 기억이 초기화되었습니다.\n", "#569cd6")
+            return
+        
+        elif user_input == "/clear":
+            # CLEAR SCREEN ONLY: Keep memory / 화면만 지움 (기억 유지)
+            self.last_screen_html = self.terminal.toHtml() # Save for undo
+            self.terminal.clear()
+            self.append_text("\n[SYSTEM] Screen cleared. (AI still remembers) / 화면이 지워졌습니다. (기억 유지됨)\n", "#569cd6")
+            return
+        
+        elif user_input in ("/cancel_clear", "/cclear"):
+            # RESTORE PREVIOUS SCREEN / 이전 화면 복구
+            if self.last_screen_html:
+                self.terminal.setHtml(self.last_screen_html)
+                self.append_text("\n[SYSTEM] Screen restored. / 화면이 복구되었습니다.\n", "#569cd6")
+            else:
+                self.append_text("\n[SYSTEM] Nothing to restore. / 복구할 화면이 없습니다.\n", "#f44747")
+            return
+
+        elif user_input == "/help":
+            self.show_banner()
+            return
+        
+        elif user_input == "/exit":
+            self.close()
             return
 
         # Append user message to terminal / 사용자 메시지 터미널에 추가
