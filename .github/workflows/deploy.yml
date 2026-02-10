@@ -158,7 +158,12 @@ jobs:
             type=sha
       
       - name: Create Project-Specific Dockerfile
+        shell: bash
         run: |
+          # Properly quote paths for Dockerfile / Dockerfile을 위한 경로 쿼팅 처리
+          REQ_PATH="${{ matrix.project.path }}/requirements.txt"
+          PROJ_PATH="${{ matrix.project.path }}"
+          
           cat > Dockerfile.project <<EOF
           FROM python:3.11-slim
           WORKDIR /app
@@ -166,9 +171,9 @@ jobs:
               python3-tk \
               libx11-6 \
               && rm -rf /var/lib/apt/lists/*
-          COPY "${{ matrix.project.path }}/requirements.txt" .
+          COPY "${REQ_PATH}" .
           RUN pip install --no-cache-dir -r requirements.txt
-          COPY "${{ matrix.project.path }}" .
+          COPY "${PROJ_PATH}" .
           CMD ["python", "main.py"]
           EOF
       
