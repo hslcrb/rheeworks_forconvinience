@@ -220,6 +220,7 @@ GtkWidget* create_text_avatar() {
     gtk_label_set_markup(GTK_LABEL(avatar_label), "<b>Study\nAI</b>");
     gtk_label_set_justify(GTK_LABEL(avatar_label), GTK_JUSTIFY_CENTER);
     gtk_widget_set_size_request(avatar_label, 50, 50);
+    gtk_widget_set_valign(avatar_label, GTK_ALIGN_START);  // Pin to top
     
     // Apply CSS class based on theme
     GtkStyleContext *context = gtk_widget_get_style_context(avatar_label);
@@ -305,7 +306,10 @@ GtkWidget* add_message_bubble(const char *text, int is_user) {
         gtk_box_pack_end(GTK_BOX(row_box), content_vbox, FALSE, FALSE, 0);
         gtk_widget_set_halign(row_box, GTK_ALIGN_END);
     } else {
-        if (avatar) gtk_box_pack_start(GTK_BOX(row_box), avatar, FALSE, FALSE, 0);
+        if (avatar) {
+            gtk_box_pack_start(GTK_BOX(row_box), avatar, FALSE, FALSE, 0);
+            gtk_widget_set_valign(avatar, GTK_ALIGN_START);  // Ensure top alignment
+        }
         gtk_box_pack_start(GTK_BOX(row_box), content_vbox, FALSE, FALSE, 0);
         gtk_widget_set_halign(row_box, GTK_ALIGN_START);
     }
