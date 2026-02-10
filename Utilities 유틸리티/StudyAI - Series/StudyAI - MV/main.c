@@ -20,8 +20,6 @@
 #define MODEL_NAME "mistral-small-latest"
 
 // Asset file paths
-#define ASSET_BOT_AVATAR "assets/bot_avatar.svg"
-#define ASSET_USER_AVATAR "assets/user_avatar.svg"
 #define ASSET_LOGO "assets/logo.svg"
 
 // UI Widgets
@@ -278,7 +276,11 @@ GtkWidget* add_message_bubble(const char *text, int is_user) {
     gtk_widget_set_margin_top(row_box, 8);
     gtk_widget_set_margin_bottom(row_box, 8);
     
-    GtkWidget *avatar = create_svg_image(is_user ? ASSET_USER_AVATAR : ASSET_BOT_AVATAR, 40);
+    // Bot gets logo icon, user gets no icon
+    GtkWidget *avatar = NULL;
+    if (!is_user) {
+        avatar = create_svg_image(ASSET_LOGO, 40);
+    }
     
     // Content box with label and buttons
     GtkWidget *content_vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
@@ -327,11 +329,11 @@ GtkWidget* add_message_bubble(const char *text, int is_user) {
     }
     
     if (is_user) {
-        gtk_box_pack_end(GTK_BOX(row_box), avatar, FALSE, FALSE, 0);
+        if (avatar) gtk_box_pack_end(GTK_BOX(row_box), avatar, FALSE, FALSE, 0);
         gtk_box_pack_end(GTK_BOX(row_box), content_vbox, FALSE, FALSE, 0);
         gtk_widget_set_halign(row_box, GTK_ALIGN_END);
     } else {
-        gtk_box_pack_start(GTK_BOX(row_box), avatar, FALSE, FALSE, 0);
+        if (avatar) gtk_box_pack_start(GTK_BOX(row_box), avatar, FALSE, FALSE, 0);
         gtk_box_pack_start(GTK_BOX(row_box), content_vbox, FALSE, FALSE, 0);
         gtk_widget_set_halign(row_box, GTK_ALIGN_START);
     }
