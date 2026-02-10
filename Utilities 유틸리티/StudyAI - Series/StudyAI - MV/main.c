@@ -100,6 +100,9 @@ int total_tokens = 0;
 const int MAX_TOKENS = 32000;  // Mistral Small context limit
 
 GtkWidget *context_label = NULL;
+GtkWidget *streaming_dot_label = NULL;
+guint dot_timer_id = 0;
+int dot_visible = 1;
 
 struct ThreadData {
     char *user_input;
@@ -189,6 +192,15 @@ char* markdown_to_pango(const char *text) {
             }
         }
         
+        // Handle Bullet Lists (- item)
+        if (i == 0 || text[i-1] == '\n') {
+            if (text[i] == '-' && i + 1 < len && text[i+1] == ' ') {
+                g_string_append(out, "  • ");
+                i += 2;
+                continue;
+            }
+        }
+
         // Handle Heading (###)
         if (i == 0 || text[i-1] == '\n') {
             if (i + 2 < len && text[i] == '#' && text[i+1] == '#' && text[i+2] == '#' && text[i+3] == ' ') {
@@ -260,6 +272,15 @@ char* markdown_to_pango(const char *text) {
     return g_string_free(out, FALSE);
 }
 
+// --- Streaming Dot Indicator ---
+
+gboolean blink_dot(gpointer user_data) {
+    if (!is_streaming || !streaming_dot_label) return FALSE;
+    dot_visible = !dot_visible;
+    gtk_label_set_text(GTK_LABEL(streaming_dot_label), dot_visible ? "●" : " ");
+    return TRUE;  // Keep timer going
+}
+
 // --- Auto-scroll Helper ---
 
 gboolean scroll_to_bottom(gpointer user_data) {
@@ -280,6 +301,10 @@ gboolean update_bot_message(gpointer user_data) {
             char *markup = markdown_to_pango(current_bot_text->str);
             gtk_label_set_markup(GTK_LABEL(current_bot_label), markup);
             g_free(markup);
+        }
+        // Update streaming dot position - append after the label
+        if (streaming_dot_label) {
+            gtk_widget_show(streaming_dot_label);
         }
     }
     free(chunk);
@@ -441,6 +466,15 @@ gboolean completion_finished(gpointer data) {
     is_streaming = 0;
     gtk_widget_set_sensitive(prompt_entry, TRUE);
     
+    // Stop blinking dot
+    if (dot_timer_id) {
+        g_source_remove(dot_timer_id);
+        dot_timer_id = 0;
+    }
+    if (streaming_dot_label) {
+        gtk_widget_hide(streaming_dot_label);
+    }
+    
     // Add bot response to history
     if (current_bot_text && message_count < MAX_MESSAGES) {
         conversation_history[message_count].role = strdup("assistant");
@@ -553,6 +587,20 @@ void on_send_clicked(GtkWidget *widget, gpointer data) {
         if (current_bot_text) g_string_free(current_bot_text, TRUE);
         current_bot_text = g_string_new("");
         current_bot_label = add_message_bubble("", 0);
+        
+        // Create streaming dot indicator in the bot bubble's parent
+        if (streaming_dot_label) {
+            gtk_widget_destroy(streaming_dot_label);
+        }
+        streaming_dot_label = gtk_label_new("●");
+        gtk_widget_set_halign(streaming_dot_label, GTK_ALIGN_START);
+        gtk_widget_set_margin_start(streaming_dot_label, 82);
+        gtk_list_box_insert(GTK_LIST_BOX(chat_list_box), streaming_dot_label, -1);
+        gtk_widget_show(streaming_dot_label);
+        
+        // Start blinking timer (300ms interval)
+        dot_visible = 1;
+        dot_timer_id = g_timeout_add(300, blink_dot, NULL);
         
         is_streaming = 1;
         gtk_widget_set_sensitive(prompt_entry, FALSE);
