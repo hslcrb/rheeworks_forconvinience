@@ -19,9 +19,6 @@
 #define MISTRAL_API_URL "https://api.mistral.ai/v1/chat/completions"
 #define MODEL_NAME "mistral-small-latest"
 
-// Asset file paths
-#define ASSET_LOGO "assets/logo.svg"
-#define ASSET_LOGO_WHITE "assets/logo_white.svg"
 
 // UI Widgets
 GtkWidget *main_window;
@@ -82,27 +79,6 @@ GdkPixbuf* svg_to_pixbuf(const char *svg_data, int width, int height) {
     }
     
     return pixbuf;
-}
-
-// Replace black color in SVG with white for dark mode
-char* swap_svg_colors(const char *svg_data, int to_white) {
-    if (!to_white) return strdup(svg_data);
-    
-    GString *result = g_string_new("");
-    const char *search = "#000000";
-    const char *replace = "#ffffff";
-    
-    const char *pos = svg_data;
-    const char *found;
-    
-    while ((found = strstr(pos, search)) != NULL) {
-        g_string_append_len(result, pos, found - pos);
-        g_string_append(result, replace);
-        pos = found + strlen(search);
-    }
-    g_string_append(result, pos);
-    
-    return g_string_free(result, FALSE);
 }
 
 // --- Enhanced Markdown Parser with Heading Support ---
@@ -238,24 +214,18 @@ size_t StreamCallback(void *contents, size_t size, size_t nmemb, void *userp) {
 
 // --- UI Components ---
 
-GtkWidget* create_svg_image(const char *svg_filepath, int size) {
-    char *svg_data = load_file_to_string(svg_filepath);
-    if (!svg_data) {
-        return gtk_image_new(); // Return empty image on error
-    }
+// Create StudyAI text avatar
+GtkWidget* create_text_avatar() {
+    GtkWidget *avatar_label = gtk_label_new(NULL);
+    gtk_label_set_markup(GTK_LABEL(avatar_label), "<b>Study\nAI</b>");
+    gtk_label_set_justify(GTK_LABEL(avatar_label), GTK_JUSTIFY_CENTER);
+    gtk_widget_set_size_request(avatar_label, 50, 50);
     
-    GdkPixbuf *pixbuf = svg_to_pixbuf(svg_data, size, size);
-    GtkWidget *image = gtk_image_new_from_pixbuf(pixbuf);
+    // Apply CSS class based on theme
+    GtkStyleContext *context = gtk_widget_get_style_context(avatar_label);
+    gtk_style_context_add_class(context, "avatar-text");
     
-    free(svg_data);
-    if (pixbuf) g_object_unref(pixbuf);
-    
-    return image;
-}
-
-// Get appropriate logo based on theme
-const char* get_logo_path() {
-    return is_dark_mode ? ASSET_LOGO_WHITE : ASSET_LOGO;
+    return avatar_label;
 }
 
 // Copy button callback
@@ -278,10 +248,10 @@ GtkWidget* add_message_bubble(const char *text, int is_user) {
     gtk_widget_set_margin_top(row_box, 8);
     gtk_widget_set_margin_bottom(row_box, 8);
     
-    // Bot gets logo icon (theme-appropriate), user gets no icon
+    // Bot gets text avatar, user gets no icon
     GtkWidget *avatar = NULL;
     if (!is_user) {
-        avatar = create_svg_image(get_logo_path(), 40);
+        avatar = create_text_avatar();
     }
     
     // Content box with label and buttons
@@ -452,11 +422,12 @@ void set_theme(int dark) {
         ".bot-bubble { background: rgba(255,255,255,0.08); backdrop-filter: blur(10px); color: #e0e0e0; border: 1px solid rgba(255,255,255,0.1); }"
         "entry { background: rgba(255,255,255,0.1); color: white; border-radius: 24px; border: 1px solid rgba(255,255,255,0.2); padding: 12px 20px; font-size: 14px; }"
         "entry:focus { border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.3); }"
-        "button.send-btn { background: linear-gradient(135deg, #11998e, #38ef7d); color: white; border-radius: 24px; font-weight: 600; border: none; padding: 12px 28px; transition: all 0.3s; }"
-        "button.send-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(56,239,125,0.4); }"
-        "button.action-btn { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); padding: 6px 12px; font-size: 12px; transition: all 0.2s; }"
-        "button.action-btn:hover { background: rgba(255,255,255,0.2); color: white; }"
-        "label.title { font-size: 42px; font-weight: 700; color: #fff; text-shadow: 0 4px 20px rgba(102,126,234,0.5); }"
+        "button.send-btn { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 24px; font-weight: 600; border: none; padding: 12px 28px; transition: all 0.3s; }"
+        "button.send-btn:hover { box-shadow: 0 8px 24px rgba(102,126,234,0.4); }"
+        "button.action-btn { background: rgba(102,126,234,0.15); color: #667eea; border-radius: 12px; border: 1px solid rgba(102,126,234,0.3); padding: 6px 12px; font-size: 12px; transition: all 0.2s; }"
+        "button.action-btn:hover { background: rgba(102,126,234,0.25); }"
+        ".avatar-text { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 8px; padding: 8px; font-size: 11px; font-weight: bold; }"
+        "label.title { font-size: 42px; font-weight: 700; color: white; text-shadow: 0 4px 20px rgba(102,126,234,0.5); }"
         "label.subtitle { font-size: 16px; color: rgba(255,255,255,0.7); font-weight: 300; letter-spacing: 0.5px; }";
     } else {
         css = 
@@ -469,9 +440,10 @@ void set_theme(int dark) {
         "entry { background: #ffffff; color: #333; border-radius: 24px; border: 1px solid rgba(118,75,162,0.15); padding: 12px 20px; font-size: 14px; }"
         "entry:focus { border-color: #8b7ec4; box-shadow: 0 0 0 3px rgba(139,126,196,0.15); }"
         "button.send-btn { background: linear-gradient(135deg, #8b7ec4, #a89dd6); color: white; border-radius: 24px; font-weight: 600; border: none; padding: 12px 28px; transition: all 0.3s; }"
-        "button.send-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(139,126,196,0.25); }"
+        "button.send-btn:hover { box-shadow: 0 6px 20px rgba(139,126,196,0.25); }"
         "button.action-btn { background: rgba(139,126,196,0.08); color: #6b5fa3; border-radius: 12px; border: 1px solid rgba(118,75,162,0.15); padding: 6px 12px; font-size: 12px; transition: all 0.2s; }"
         "button.action-btn:hover { background: rgba(139,126,196,0.15); color: #5a4e8a; }"
+        ".avatar-text { background: linear-gradient(135deg, #8b7ec4, #a89dd6); color: white; border-radius: 8px; padding: 8px; font-size: 11px; font-weight: bold; }"
         "label.title { font-size: 42px; font-weight: 700; color: #6b5fa3; text-shadow: 0 2px 10px rgba(107,95,163,0.15); }"
         "label.subtitle { font-size: 16px; color: rgba(107,95,163,0.65); font-weight: 300; letter-spacing: 0.5px; }";
     }
@@ -535,18 +507,24 @@ int main(int argc, char *argv[]) {
     gtk_widget_set_valign(start_vbox, GTK_ALIGN_CENTER);
     gtk_widget_set_halign(start_vbox, GTK_ALIGN_CENTER);
     
-    GtkWidget *logo_image = create_svg_image(get_logo_path(), 150);
-    g_timeout_add(50, pulse_logo, logo_image);
+    // Title with gradient background box
+    GtkWidget *title_box = gtk_event_box_new();
+    GtkWidget *title_label = gtk_label_new(NULL);
+    gtk_label_set_markup(GTK_LABEL(title_label), "<b>Study\nAI</b>");
+    gtk_label_set_justify(GTK_LABEL(title_label), GTK_JUSTIFY_CENTER);
+    gtk_container_add(GTK_CONTAINER(title_box), title_label);
     
-    GtkWidget *title_label = gtk_label_new("StudyAI");
+    // Apply same style as avatar
+    GtkStyleContext *title_context = gtk_widget_get_style_context(title_label);
+    gtk_style_context_add_class(title_context, "avatar-text");
+    gtk_widget_set_size_request(title_box, 120, 120);
     gtk_style_context_add_class(gtk_widget_get_style_context(title_label), "title");
     
     GtkWidget *subtitle_label = gtk_label_new("Your Intelligent Companion\nPowered by Advanced AI");
     gtk_style_context_add_class(gtk_widget_get_style_context(subtitle_label), "subtitle");
     gtk_label_set_justify(GTK_LABEL(subtitle_label), GTK_JUSTIFY_CENTER);
 
-    gtk_box_pack_start(GTK_BOX(start_vbox), logo_image, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(start_vbox), title_label, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(start_vbox), title_box, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(start_vbox), subtitle_label, FALSE, FALSE, 0);
 
     gtk_stack_add_named(GTK_STACK(stack), start_vbox, "start_view");
