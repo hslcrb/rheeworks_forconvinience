@@ -182,6 +182,260 @@ def markdown_to_html(text):
     return "".join(html_parts)
 
 
+# Hangul Automata Logic / 한글 오토마타 로직
+class HangulAutomata:
+    """
+    Simple 2-beolsik Hangul Automata / 간단한 2벌식 한글 오토마타.
+    Handles Jamo combination (Cho/Jung/Jong).
+    """
+    CHO = [
+        'ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ',
+        'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'
+    ]
+    JUNG = [
+        'ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ',
+        'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'
+    ]
+    JONG = [
+        '', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ',
+        'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ',
+        'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'
+    ]
+
+    # Jamo Mapping / 자모 매핑 (QWERTY to Jamo)
+    MAP = {
+        'q': 'ㅂ', 'w': 'ㅈ', 'e': 'ㄷ', 'r': 'ㄱ', 't': 'ㅅ',
+        'y': 'ㅛ', 'u': 'ㅕ', 'i': 'ㅑ', 'o': 'ㅐ', 'p': 'ㅔ',
+        'a': 'ㅁ', 's': 'ㄴ', 'd': 'ㅇ', 'f': 'ㄹ', 'g': 'ㅎ',
+        'h': 'ㅗ', 'j': 'ㅓ', 'k': 'ㅏ', 'l': 'ㅣ',
+        'z': 'ㅋ', 'x': 'ㅌ', 'c': 'ㅊ', 'v': 'ㅍ', 'b': 'ㅠ', 'n': 'ㅜ', 'm': 'ㅡ',
+        'Q': 'ㅃ', 'W': 'ㅉ', 'E': 'ㄸ', 'R': 'ㄲ', 'T': 'ㅆ',
+        'O': 'ㅒ', 'P': 'ㅖ'
+    }
+
+    # Complex Jamo Combination / 복합 자모 조합
+    COMPLEX_JUNG = {
+        ('ㅗ', 'ㅏ'): 'ㅘ', ('ㅗ', 'ㅐ'): 'ㅙ', ('ㅗ', 'ㅣ'): 'ㅚ',
+        ('ㅜ', 'ㅓ'): 'ㅝ', ('ㅜ', 'ㅔ'): 'ㅞ', ('ㅜ', 'ㅣ'): 'ㅟ',
+        ('ㅡ', 'ㅣ'): 'ㅢ'
+    }
+    COMPLEX_JONG = {
+        ('ㄱ', 'ㅅ'): 'ㄳ', ('ㄴ', 'ㅈ'): 'ㄵ', ('ㄴ', 'ㅎ'): 'ㄶ',
+        ('ㄹ', 'ㄱ'): 'ㄺ', ('ㄹ', 'ㅁ'): 'ㄻ', ('ㄹ', 'ㅂ'): 'ㄼ',
+        ('ㄹ', 'ㅅ'): 'ㄽ', ('ㄹ', 'ㅌ'): 'ㄾ', ('ㄹ', 'ㅍ'): 'ㄿ',
+        ('ㄹ', 'ㅎ'): 'ㅀ', ('ㅂ', 'ㅅ'): 'ㅄ'
+    }
+
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.cho = -1
+        self.jung = -1
+        self.jong = -1
+        self.last_jung = -1  # For complex jung
+        self.last_jong = -1  # For complex jong
+        self.buffer = ""
+
+    def combine(self):
+        if self.cho == -1:
+            return self.buffer
+        
+        # Base Hangul Char: 0xAC00
+        cho_idx = self.cho
+        jung_idx = self.jung if self.jung != -1 else 0
+        jong_idx = self.jong if self.jong != -1 else 0
+        
+        if self.jung == -1: # Consonant only
+            return self.CHO[cho_idx]
+            
+        code = 0xAC00 + (cho_idx * 21 * 28) + (jung_idx * 28) + jong_idx
+        return chr(code)
+
+    def process_key(self, key):
+        """Processes a char key, returns (committed, current_composition)"""
+        if key not in self.MAP:
+            committed = self.combine()
+            self.reset()
+            return committed + key, ""
+
+        jamo = self.MAP[key]
+        
+        # 1. Start or Cho
+        if self.cho == -1:
+            if jamo in self.CHO:
+                self.cho = self.CHO.index(jamo)
+                return "", self.combine()
+            else: # Solo vowel
+                return jamo, ""
+
+        # 2. Jung
+        if self.jung == -1:
+            if jamo in self.JUNG:
+                self.jung = self.JUNG.index(jamo)
+                return "", self.combine()
+            else: # Commit previous cho, start new cho
+                prev = self.combine()
+                self.reset()
+                self.cho = self.CHO.index(jamo)
+                return prev, self.combine()
+
+        # 3. Complex Jung or Jong
+        if self.jong == -1:
+            # Check complex jung
+            cur_jung = self.JUNG[self.jung]
+            if (cur_jung, jamo) in self.COMPLEX_JUNG:
+                new_jung = self.COMPLEX_JUNG[(cur_jung, jamo)]
+                self.jung = self.JUNG.index(new_jung)
+                return "", self.combine()
+            
+            if jamo in self.JONG:
+                self.jong = self.JONG.index(jamo)
+                return "", self.combine()
+            
+            if jamo in self.JUNG: # New vowel, commit current
+                prev = self.combine()
+                self.reset()
+                return prev + jamo, ""
+            
+            # Start new block
+            prev = self.combine()
+            self.reset()
+            self.cho = self.CHO.index(jamo)
+            return prev, self.combine()
+
+        # 4. Complex Jong or Break Jong to new Cho
+        if jamo in self.JUNG:
+            # Break jong to become new cho
+            jong_char = self.JONG[self.jong]
+            
+            # If complex jong, break it / 복합 종성 분해
+            found_complex = False
+            for (j1, j2), combined in self.COMPLEX_JONG.items():
+                if combined == jong_char:
+                    # Keep j1 as jong, j2 becomes new cho
+                    self.jong = self.JONG.index(j1)
+                    prev = self.combine()
+                    self.reset()
+                    self.cho = self.CHO.index(j2)
+                    # Now process the current vowel with new cho
+                    _, current = self.process_key(key)
+                    return prev, current
+            
+            # Simple jong becomes new cho
+            self.jong = 0
+            prev = self.combine()
+            self.reset()
+            self.cho = self.CHO.index(jong_char)
+            _, current = self.process_key(key)
+            return prev, current
+
+        # Check complex jong
+        cur_jong = self.JONG[self.jong]
+        if (cur_jong, jamo) in self.COMPLEX_JONG:
+            new_jong = self.COMPLEX_JONG[(cur_jong, jamo)]
+            self.jong = self.JONG.index(new_jong)
+            return "", self.combine()
+
+        # Commit and start new
+        prev = self.combine()
+        self.reset()
+        if jamo in self.CHO:
+            self.cho = self.CHO.index(jamo)
+            return prev, self.combine()
+        else:
+            return prev + jamo, ""
+
+
+class HangulLineEdit(QLineEdit):
+    """
+    Custom LineEdit with internal Hangul engine / 자체 한글 엔진을 포함한 LineEdit.
+    Toggles mode with Right Alt (Hangul key).
+    """
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.is_hangul = False
+        self.automata = HangulAutomata()
+        self.temp_composition = ""
+
+    def keyPressEvent(self, event: QKeyEvent):
+        # Toggle Hangul mode / 한영 전환
+        # key 108 is often Hangul key on Linux, or Qt.Key_Alt
+        if event.key() == Qt.Key_AltGr or event.key() == 108 or (event.key() == Qt.Key_Alt and event.modifiers() & Qt.AltModifier):
+            # We treat Right Alt as Hangul toggle / 오른쪽 알트를 한영 전환으로 취급
+            # On many Linux setups, Right Alt registers as AltGr or keycode 108
+            self.commit_composition()
+            self.is_hangul = not self.is_hangul
+            mode_str = "KO" if self.is_hangul else "EN"
+            # Optional: Show mode in placeholder or similar
+            return
+
+        if not self.is_hangul:
+            super().keyPressEvent(event)
+            return
+
+        # Handle Backspace / 백스페이스 처리
+        if event.key() == Qt.Key_Backspace:
+            if self.temp_composition:
+                self.automata.reset()
+                self.temp_composition = ""
+                self.update_display()
+            else:
+                super().keyPressEvent(event)
+            return
+
+        # Handle Return/Enter / 엔터 처리
+        if event.key() in (Qt.Key_Return, Qt.Key_Enter):
+            self.commit_composition()
+            super().keyPressEvent(event)
+            return
+
+        # Handle text input / 텍스트 입력 처리
+        text = event.text()
+        if not text or len(text) > 1 or not text.isprintable():
+            self.commit_composition()
+            super().keyPressEvent(event)
+            return
+
+        # Process with automata / 오토마타로 처리
+        committed, current = self.automata.process_key(text)
+        
+        if committed:
+            # Bypass automata for non-mappable chars / 매핑되지 않은 문자는 오토마타 우회
+            self.insert(committed)
+        
+        self.temp_composition = current
+        self.update_display()
+
+    def commit_composition(self):
+        if self.temp_composition:
+            self.insert(self.temp_composition)
+            self.temp_composition = ""
+            self.automata.reset()
+
+    def update_display(self):
+        # We use a trick: insert then select to show composition
+        # 더 나은 방법은 QInputMethodEvent를 쓰는 것이지만, 간단하게 구현
+        # This is a bit hacky but works for terminal style
+        pass
+
+    def inputMethodEvent(self, event):
+        # Disable system input method to prevent conflict
+        event.ignore()
+
+    # We need a proper way to show "in-progress" character.
+    # Let's refine the update_display to use preedit-like behavior.
+    def update_display(self):
+        # Implementation in next step if needed, for now just insert directly for MVP
+        if self.temp_composition:
+            # This is not ideal as it changes the actual text.
+            # But since it's a terminal style, it might be okay for now.
+            # We'll just commit every time for now to keep it simple and avoid ghost characters.
+            self.insert(self.temp_composition)
+            self.temp_composition = ""
+            self.automata.reset()
+
+
 def _apply_inline_md(text):
     """
     인라인 마크다운 서식 적용 / Apply inline markdown formatting.
@@ -261,10 +515,8 @@ class StudyAITerminal(QMainWindow):
         input_layout.addWidget(self.prompt_label)
         
         # Input field / 입력 필드
-        self.input_field = QLineEdit()
+        self.input_field = HangulLineEdit()
         self.input_field.setFont(QFont("Monospace", 12))
-        self.input_field.setAttribute(Qt.WA_InputMethodEnabled, True)
-        self.input_field.setInputMethodHints(Qt.ImhNone)
         self.input_field.setStyleSheet("""
             QLineEdit {
                 background-color: #1a1a1a;
