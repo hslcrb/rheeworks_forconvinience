@@ -8,11 +8,49 @@ Licensed under Apache-2.0
 """
 
 import sys
+import os
 import json
 import random
 import threading
+import platform
 import requests
 from datetime import datetime
+
+
+def setup_input_method():
+    """
+    OS 독립적 입력 방식 설정 / OS-independent input method setup.
+    Ensures Korean (한글) input works properly across Linux IM frameworks.
+    """
+    if platform.system() == "Linux":
+        # Detect system IM module / 시스템 IM 모듈 감지
+        im_module = os.environ.get("QT_IM_MODULE", "").lower()
+        gtk_im = os.environ.get("GTK_IM_MODULE", "").lower()
+        
+        if "fcitx" in im_module or "fcitx" in gtk_im:
+            os.environ["QT_IM_MODULE"] = "fcitx"
+            # Point to system Qt6 fcitx plugin / 시스템 Qt6 fcitx 플러그인 경로 설정
+            system_plugin_path = "/usr/lib/x86_64-linux-gnu/qt6/plugins"
+            if os.path.exists(system_plugin_path):
+                existing = os.environ.get("QT_PLUGIN_PATH", "")
+                if system_plugin_path not in existing:
+                    os.environ["QT_PLUGIN_PATH"] = (
+                        f"{existing}:{system_plugin_path}" if existing else system_plugin_path
+                    )
+        elif "ibus" in im_module or "ibus" in gtk_im:
+            os.environ["QT_IM_MODULE"] = "ibus"
+        
+        # Also set XMODIFIERS if not set / XMODIFIERS도 설정
+        if not os.environ.get("XMODIFIERS"):
+            if "fcitx" in os.environ.get("QT_IM_MODULE", ""):
+                os.environ["XMODIFIERS"] = "@im=fcitx"
+            elif "ibus" in os.environ.get("QT_IM_MODULE", ""):
+                os.environ["XMODIFIERS"] = "@im=ibus"
+
+
+# Must be called BEFORE QApplication import / QApplication import 전에 호출 필수
+setup_input_method()
+
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout,
     QTextEdit, QLineEdit, QLabel, QHBoxLayout
