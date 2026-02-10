@@ -159,32 +159,35 @@ jobs:
       
       - name: Create Project-Specific Dockerfile
         shell: bash
-        env:
-          PROJ_PATH: ${{ matrix.project.path }}
         run: |
-          # Use single quotes for EOF and env var for path safety / 경로 안전성을 위해 EOF에 작은따옴표를 사용하고 환경 변수 활용
-          cat > Dockerfile.project <<'EOF'
+          # Create Dockerfile inside the project directory to simplify paths / 경로 단순화를 위해 프로젝트 디렉토리 내에 Dockerfile 생성
+          PROJECT_DIR="${{ matrix.project.path }}"
+          
+          cat > "${PROJECT_DIR}/Dockerfile.project" <<'EOF'
           FROM python:3.11-slim
           WORKDIR /app
+          
+          # Install system dependencies / 시스템 의존성 설치
           RUN apt-get update && apt-get install -y \
               python3-tk \
               libx11-6 \
               && rm -rf /var/lib/apt/lists/*
+          
+          # Copy only requirements first / requirements.txt 먼저 복사
+          COPY requirements.txt .
+          RUN pip install --no-cache-dir -r requirements.txt
+          
+          # Copy the rest of the project / 나머지 프로젝트 파일 복사
+          COPY . .
+          
+          CMD ["python", "main.py"]
           EOF
-          
-          echo "COPY \"$PROJ_PATH/requirements.txt\" ." >> Dockerfile.project
-          echo "RUN pip install --no-cache-dir -r requirements.txt" >> Dockerfile.project
-          echo "COPY \"$PROJ_PATH\" ." >> Dockerfile.project
-          echo "CMD [\"python\", \"main.py\"]" >> Dockerfile.project
-          
-          echo "### Generated Dockerfile / 생성된 Dockerfile"
-          cat Dockerfile.project
       
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: ./Dockerfile.project
+          context: "${{ matrix.project.path }}"
+          file: "${{ matrix.project.path }}/Dockerfile.project"
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
