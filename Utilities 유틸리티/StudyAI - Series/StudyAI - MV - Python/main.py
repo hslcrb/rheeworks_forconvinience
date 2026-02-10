@@ -113,30 +113,111 @@ class StreamSignals(QObject):
     stream_error = Signal(str)
 
 
-class TerminalWidget(QTextEdit):
-    """Terminal-style text widget / 터미널 스타일 텍스트 위젯"""
+def markdown_to_html(text):
+    """
+    마크다운을 HTML로 변환 (터미널 스타일) / Convert markdown to HTML (terminal style).
+    Supports: **bold**, *italic*, `inline code`, ```code blocks```, ### headers, - bullet lists.
+    """
+    import re
+    lines = text.split("\n")
+    html_parts = []
+    in_code_block = False
+    code_block_content = []
     
-    command_entered = Signal(str)
+    for line in lines:
+        # Code block toggle / 코드 블록 토글
+        if line.strip().startswith("```"):
+            if in_code_block:
+                # Close code block / 코드 블록 닫기
+                code_text = "\n".join(code_block_content)
+                code_text = code_text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                html_parts.append(
+                    f'<div style="background-color:#2a2a2a; padding:6px 10px; margin:4px 0; '
+                    f'border-left:3px solid #6aff6a; font-family:Monospace;">'
+                    f'<pre style="margin:0; color:#c8c8c8;">{code_text}</pre></div>'
+                )
+                code_block_content = []
+                in_code_block = False
+            else:
+                in_code_block = True
+            continue
+        
+        if in_code_block:
+            code_block_content.append(line)
+            continue
+        
+        # Escape HTML / HTML 이스케이프
+        line = line.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        
+        # Headers / 헤더 (### > ## > #)
+        header_match = re.match(r'^(#{1,3})\s+(.*)', line)
+        if header_match:
+            level = len(header_match.group(1))
+            header_text = header_match.group(2)
+            # Apply inline formatting to header text / 헤더 텍스트에 인라인 서식 적용
+            header_text = _apply_inline_md(header_text)
+            if level == 1:
+                html_parts.append(f'<p style="color:#ffffff; font-weight:bold; font-size:15px; margin:6px 0;">{header_text}</p>')
+            elif level == 2:
+                html_parts.append(f'<p style="color:#e0e0e0; font-weight:bold; font-size:14px; margin:4px 0;">{header_text}</p>')
+            else:
+                html_parts.append(f'<p style="color:#cccccc; font-weight:bold; margin:3px 0;">{header_text}</p>')
+            continue
+        
+        # Bullet lists / 불릿 목록
+        bullet_match = re.match(r'^(\s*)[-*]\s+(.*)', line)
+        if bullet_match:
+            indent = len(bullet_match.group(1))
+            item_text = _apply_inline_md(bullet_match.group(2))
+            pad = "&nbsp;" * (indent + 2)
+            html_parts.append(f'<p style="margin:1px 0;">{pad}• {item_text}</p>')
+            continue
+        
+        # Numbered lists / 숫자 목록
+        num_match = re.match(r'^(\s*)\d+[.)]\s+(.*)', line)
+        if num_match:
+            indent = len(num_match.group(1))
+            item_text = _apply_inline_md(num_match.group(2))
+            pad = "&nbsp;" * (indent + 2)
+            html_parts.append(f'<p style="margin:1px 0;">{pad}▸ {item_text}</p>')
+            continue
+        
+        # Regular text with inline formatting / 인라인 서식이 있는 일반 텍스트
+        if line.strip():
+            html_parts.append(f'<p style="margin:1px 0;">{_apply_inline_md(line)}</p>')
+        else:
+            html_parts.append('<p style="margin:2px 0;">&nbsp;</p>')
     
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setReadOnly(True)
-        self.prompt_prefix = "studyai> "
-        self.input_mode = False
-        self.current_input = ""
-        
-    def append_colored(self, text, color="#d4d4d4"):
-        """Append colored text / 색상 텍스트 추가"""
-        cursor = self.textCursor()
-        cursor.movePosition(QTextCursor.End)
-        
-        fmt = cursor.charFormat()
-        fmt.setForeground(QColor(color))
-        cursor.setCharFormat(fmt)
-        cursor.insertText(text)
-        
-        self.setTextCursor(cursor)
-        self.ensureCursorVisible()
+    # Close unclosed code block / 닫히지 않은 코드 블록 닫기
+    if in_code_block and code_block_content:
+        code_text = "\n".join(code_block_content)
+        code_text = code_text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        html_parts.append(
+            f'<div style="background-color:#2a2a2a; padding:6px 10px; margin:4px 0; '
+            f'border-left:3px solid #6aff6a; font-family:Monospace;">'
+            f'<pre style="margin:0; color:#c8c8c8;">{code_text}</pre></div>'
+        )
+    
+    return "".join(html_parts)
+
+
+def _apply_inline_md(text):
+    """
+    인라인 마크다운 서식 적용 / Apply inline markdown formatting.
+    Supports: **bold**, *italic*, `code`
+    """
+    import re
+    # Inline code / 인라인 코드: `text`
+    text = re.sub(
+        r'`([^`]+)`',
+        r'<span style="background-color:#2a2a2a; color:#9cdcfe; padding:1px 4px;">\1</span>',
+        text
+    )
+    # Bold / 볼드: **text**
+    text = re.sub(r'\*\*([^*]+)\*\*', r'<b style="color:#ffffff;">\1</b>', text)
+    # Italic / 이탤릭: *text*
+    text = re.sub(r'\*([^*]+)\*', r'<i>\1</i>', text)
+    return text
 
 
 class StudyAITerminal(QMainWindow):
@@ -242,7 +323,7 @@ class StudyAITerminal(QMainWindow):
         self.input_field.setFocus()
     
     def append_text(self, text, color="#d4d4d4"):
-        """Append text with color / 색상 텍스트 추가"""
+        """Append plain text with color / 색상 일반 텍스트 추가"""
         cursor = self.terminal.textCursor()
         cursor.movePosition(QTextCursor.End)
         
@@ -254,18 +335,38 @@ class StudyAITerminal(QMainWindow):
         self.terminal.setTextCursor(cursor)
         self.terminal.ensureCursorVisible()
     
+    def append_html(self, html):
+        """Append HTML content / HTML 콘텐츠 추가"""
+        cursor = self.terminal.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        cursor.insertHtml(html)
+        self.terminal.setTextCursor(cursor)
+        self.terminal.ensureCursorVisible()
+    
     def show_banner(self):
         """Show startup banner / 시작 배너 표시"""
         greeting = random.choice(GREETINGS)
         
-        self.append_text("╔══════════════════════════════════════════╗\n", "#6aff6a")
-        self.append_text("║          ", "#6aff6a")
-        self.append_text("StudyAI Terminal", "#ffffff")
-        self.append_text("              ║\n", "#6aff6a")
-        self.append_text("║     ", "#6aff6a")
-        self.append_text("Python Edition • Mistral AI", "#888888")
-        self.append_text("        ║\n", "#6aff6a")
-        self.append_text("╚══════════════════════════════════════════╝\n", "#6aff6a")
+        # Fixed-width banner with proper alignment / 고정 너비 배너, 올바른 정렬
+        BOX_W = 44  # inner width / 내부 너비
+        
+        title = "StudyAI Terminal"
+        subtitle = "Python Edition • Mistral AI"
+        
+        # Center-pad strings inside the box / 박스 안에 문자열 가운데 정렬
+        title_pad = (BOX_W - len(title)) // 2
+        title_r = BOX_W - len(title) - title_pad
+        sub_pad = (BOX_W - len(subtitle)) // 2
+        sub_r = BOX_W - len(subtitle) - sub_pad
+        
+        self.append_text("╔" + "═" * BOX_W + "╗\n", "#6aff6a")
+        self.append_text("║" + " " * title_pad, "#6aff6a")
+        self.append_text(title, "#ffffff")
+        self.append_text(" " * title_r + "║\n", "#6aff6a")
+        self.append_text("║" + " " * sub_pad, "#6aff6a")
+        self.append_text(subtitle, "#888888")
+        self.append_text(" " * sub_r + "║\n", "#6aff6a")
+        self.append_text("╚" + "═" * BOX_W + "╝\n", "#6aff6a")
         self.append_text(f"\n  {greeting}\n", "#aaaaaa")
         self.append_text("  Type your question and press Enter.\n", "#666666")
         self.append_text("  Commands: /clear, /help, /exit\n\n", "#666666")
@@ -419,6 +520,8 @@ class StudyAITerminal(QMainWindow):
             self.dot_count = 0
         
         self.current_response += chunk
+        # Stream raw text during streaming (markdown rendered on finish)
+        # 스트리밍 중에는 원시 텍스트 출력 (완료 시 마크다운 렌더링)
         self.append_text(chunk, "#d4d4d4")
     
     def on_stream_finished(self):
@@ -434,6 +537,26 @@ class StudyAITerminal(QMainWindow):
                 cursor.movePosition(QTextCursor.Left, QTextCursor.KeepAnchor, 1)
                 cursor.removeSelectedText()
             self.terminal.setTextCursor(cursor)
+        
+        # Re-render with markdown / 마크다운으로 재렌더링
+        if self.current_response:
+            # Find and remove the raw streamed text, replace with rendered markdown
+            # 원시 스트리밍 텍스트를 찾아 제거 후 렌더링된 마크다운으로 교체
+            cursor = self.terminal.textCursor()
+            cursor.movePosition(QTextCursor.End)
+            
+            # Move back by the length of the raw response to select it
+            # 원시 응답 길이만큼 뒤로 이동하여 선택
+            raw_len = len(self.current_response)
+            cursor.movePosition(QTextCursor.Left, QTextCursor.KeepAnchor, raw_len)
+            cursor.removeSelectedText()
+            
+            # Insert rendered markdown HTML / 렌더링된 마크다운 HTML 삽입
+            rendered = markdown_to_html(self.current_response)
+            cursor.insertHtml(rendered)
+            
+            self.terminal.setTextCursor(cursor)
+            self.terminal.ensureCursorVisible()
         
         self.append_text("\n\n", "#d4d4d4")
         
@@ -485,3 +608,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
