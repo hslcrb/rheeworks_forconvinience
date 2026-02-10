@@ -417,8 +417,7 @@ class HangulLineEdit(QLineEdit):
         from PySide6.QtCore import QStringListModel
         self.commands = [
             "/clear", "/help", "/exit", 
-            "/session_clear", "/sclear",
-            "/cancel_clear", "/cclear"
+            "/sclear", "/cancel_clear", "/cclear"
         ]
         self.completer = QCompleter(self.commands, self)
         self.completer.setCaseSensitivity(Qt.CaseInsensitive)
@@ -723,7 +722,7 @@ class StudyAITerminal(QMainWindow):
         self.input_field.clear()
 
         # Handle slash commands / 슬래시 명령어 처리
-        if user_input in ("/session_clear", "/sclear"):
+        if user_input == "/sclear":
             # RESET BOTH: Memory and screen / 기억과 화면 모두 초기화
             self.conversation_history = []
             self.total_tokens = 0
