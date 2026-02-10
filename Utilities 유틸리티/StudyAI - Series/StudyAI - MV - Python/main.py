@@ -360,14 +360,13 @@ class HangulLineEdit(QLineEdit):
 
     def keyPressEvent(self, event: QKeyEvent):
         # Toggle Hangul mode / 한영 전환
-        # key 108 is often Hangul key on Linux, or Qt.Key_Alt
-        if event.key() == Qt.Key_AltGr or event.key() == 108 or (event.key() == Qt.Key_Alt and event.modifiers() & Qt.AltModifier):
-            # We treat Right Alt as Hangul toggle / 오른쪽 알트를 한영 전환으로 취급
-            # On many Linux setups, Right Alt registers as AltGr or keycode 108
+        # Key 108 is often Hangul key on Linux, or Qt.Key_Hangul, or AltGr
+        if event.key() in (Qt.Key_AltGr, 108, 65513, Qt.Key_Hangul) or \
+           (event.key() == Qt.Key_Alt and event.modifiers() & Qt.AltModifier):
             self.commit_composition()
             self.is_hangul = not self.is_hangul
             mode_str = "KO" if self.is_hangul else "EN"
-            # Optional: Show mode in placeholder or similar
+            print(f"[MODE] Switched to {mode_str}")
             return
 
         if not self.is_hangul:
