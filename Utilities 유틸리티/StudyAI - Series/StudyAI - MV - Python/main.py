@@ -417,7 +417,7 @@ class HangulLineEdit(QLineEdit):
         from PySide6.QtCore import QStringListModel
         self.commands = [
             "/clear", "/help", "/exit", 
-            "/sclear", "/cancel_clear", "/cclear"
+            "/sclear", "/draw"
         ]
         self.completer = QCompleter(self.commands, self)
         self.completer.setCaseSensitivity(Qt.CaseInsensitive)
@@ -707,7 +707,7 @@ class StudyAITerminal(QMainWindow):
         self.append_text("╚" + "═" * BOX_W + "╝\n", "#6aff6a")
         self.append_text(f"\n  {greeting}\n", "#aaaaaa")
         self.append_text("  Type your question and press Enter.\n", "#666666")
-        self.append_text("  Commands: /clear, /sclear, /cclear, /help, /exit\n\n", "#666666")
+        self.append_text("  Commands: /clear, /sclear, /draw, /help, /exit\n\n", "#666666")
     
     def on_enter(self):
         """Handle user input / 사용자 입력 처리"""
@@ -738,13 +738,13 @@ class StudyAITerminal(QMainWindow):
             self.append_text("\n[SYSTEM] Screen cleared. (AI still remembers) / 화면이 지워졌습니다. (기억 유지됨)\n", "#569cd6")
             return
         
-        elif user_input in ("/cancel_clear", "/cclear"):
+        elif user_input == "/draw":
             # RESTORE PREVIOUS SCREEN / 이전 화면 복구
             if self.last_screen_html:
                 self.terminal.setHtml(self.last_screen_html)
                 self.append_text("\n[SYSTEM] Screen restored. / 화면이 복구되었습니다.\n", "#569cd6")
             else:
-                self.append_text("\n[SYSTEM] Nothing to restore. / 복구할 화면이 없습니다.\n", "#f44747")
+                self.append_text("\n[SYSTEM] Nothing to draw. / 복구할 화면이 없습니다.\n", "#f44747")
             return
 
         elif user_input == "/help":
