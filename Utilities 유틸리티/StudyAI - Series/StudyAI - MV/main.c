@@ -364,7 +364,13 @@ void *api_thread_func(void *data) {
         // Add system message for concise responses
         cJSON *system_msg = cJSON_CreateObject();
         cJSON_AddStringToObject(system_msg, "role", "system");
-        cJSON_AddStringToObject(system_msg, "content", "Be concise and brief in your responses.");
+        cJSON_AddStringToObject(system_msg, "content", 
+            "Format your responses with proper markdown. Use:\n"
+            "- Headers (###) for sections\n"
+            "- **Bold** for emphasis\n"
+            "- `code` for technical terms\n"
+            "- Bullet points for lists\n"
+            "Focus on readability and clear structure.");
         cJSON_AddItemToArray(messages, system_msg);
         
         // Add user message
