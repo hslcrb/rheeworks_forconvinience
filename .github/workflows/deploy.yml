@@ -179,6 +179,9 @@ jobs:
           mkdir -p build_context
           git archive HEAD "${{ matrix.project.path }}" | tar -x -C build_context --strip-components=2
           
+          # Create empty requirements.txt if not exists / requirements.txt 없으면 빈 파일 생성
+          touch build_context/requirements.txt
+          
           # Create project-specific Dockerfile in the clean context / 깨끗한 컨텍스트 내에 프로젝트별 Dockerfile 생성
           cat > build_context/Dockerfile.project <<'EOF'
           FROM python:3.11-slim
@@ -195,7 +198,7 @@ jobs:
           
           # Copy files from clean context / 정제된 컨텍스트에서 파일 복사
           COPY requirements.txt .
-          RUN pip install --no-cache-dir -r requirements.txt
+          RUN if [ -s requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi
           COPY . .
           
           CMD ["python", "main.py"]
