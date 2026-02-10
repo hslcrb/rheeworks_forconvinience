@@ -56,6 +56,9 @@ jobs:
           - name: "automaker-textgen"
             path: "Automaker-오토메이커 Series/텍스트생성기-Text Generator"
             script: "main.py"
+          - name: "automaker-templategen"
+            path: "Automaker-오토메이커 Series/프로젝트 템플릿 생성-Generate Project Templates"
+            script: "main.py"
     
     steps:
       - name: Checkout code
@@ -115,6 +118,8 @@ jobs:
             path: "Automaker-오토메이커 Series/클리커-Clicker"
           - name: "automaker-textgen"
             path: "Automaker-오토메이커 Series/텍스트생성기-Text Generator"
+          - name: "automaker-templategen"
+            path: "Automaker-오토메이커 Series/프로젝트 템플릿 생성-Generate Project Templates"
     permissions:
       contents: read
       packages: write
@@ -204,7 +209,7 @@ jobs:
             
             ## 📦 배포 프로젝트 / Projects
             - **Typer Series**: Basic, Pomodoro
-            - **Automaker Series**: Clicker, Text Generator
+            - **Automaker Series**: Clicker, Text Generator, Template Generator
             
             ## 🚀 실행 파일 / Binaries
             각 운영체제별 압축 파일을 다운로드하여 실행하십시오. (Windows, Linux, macOS 지원)
@@ -216,6 +221,7 @@ jobs:
             docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/typer-pomodoro:latest
             docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/automaker-clicker:latest
             docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/automaker-textgen:latest
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/automaker-templategen:latest
             ```
             
             ---

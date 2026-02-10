@@ -11,12 +11,18 @@
 This project is organized into the following sub-project series, each with its own virtual environment (`venv`) and dependencies.
 
 ### 1. Typer-타이퍼 Series
-- **[베이직 버전-Basic Version](file:///home/rheehose/문서/rheeworks_forconvinience/Typer-타이퍼%20Series/베이직%20버전-Basic Version/)**: 원천 텍스트를 읽어 키보드 입력 시 가짜로 타이핑해주는 프리미엄 도구.
-- **[포모도로 버전-Pomodoro Version](file:///home/rheehose/문서/rheeworks_forconvinience/Typer-타이퍼%20Series/포모도로%20버전-Pomodoro Version/)**: 포모도로 타이머와 가짜 타이핑 비밀 콘솔이 결합된 도구.
+- **[베이직 버전-Basic Version](file:///home/rheehose/문서/rheeworks_forconvinience/Typer-타이퍼%20Series/베이직%20버전-Basic%20Version/)**: 원천 텍스트를 읽어 키보드 입력 시 가짜로 타이핑해주는 프리미엄 도구.
+- **[포모도로 버전-Pomodoro Version](file:///home/rheehose/문서/rheeworks_forconvinience/Typer-타이퍼%20Series/포모도로%20버전-Pomodoro%20Version/)**: 포모도로 타이머와 가짜 타이핑 비밀 콘솔이 결합된 도구.
 
 ### 2. Automaker-오토메이커 Series
 - **[클리커-Clicker](file:///home/rheehose/문서/rheeworks_forconvinience/Automaker-오토메이커%20Series/클리커-Clicker/)**: 고성능 마우스 오토 클릭커 도구.
-- **[텍스트생성기-Text Generator](file:///home/rheehose/문서/rheeworks_forconvinience/Automaker-오토메이커%20Series/텍스트생성기-Text%20Generator/)**: 다국어 더미 텍스트 생성 도구.
+- **[텍스트생성기-Text Generator](file:///home/rheehose/문서/rheeworks_forconvinience/Automaker-오토메이커%20Series/텍스트생성기-Text%20Generator/)**
+  - 다양한 언어와 옵션의 더미 텍스트 생성 도구
+  - Dummy text generation tool with various languages and options
+- **[프로젝트 템플릿 생성-Project Template Generator](file:///home/rheehose/문서/rheeworks_forconvinience/Automaker-오토메이커%20Series/프로젝트%20템플릿%20생성-Generate%20Project%20Templates/)**
+  - JSP/Servlet 웹 프로젝트 스캐폴딩 도구 (자동 폴더 및 코드 생성)
+  - JSP/Servlet scaffolding tool (Auto folder & code generation)
+  - **Premium UI**: 프로젝트 초기화 자동화
 
 ---
 
