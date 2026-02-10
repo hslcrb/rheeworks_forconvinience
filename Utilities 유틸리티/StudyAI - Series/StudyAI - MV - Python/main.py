@@ -55,25 +55,69 @@ MODEL_NAME = "mistral-small-latest"
 MAX_TOKENS = 32000  # Mistral Small context limit / Mistral Small 컨텍스트 제한
 
 # Random greeting phrases / 랜덤 인사말 문구
-GREETINGS = [
-    "How are you?", "What's on your mind?", "Ready to learn something new?",
-    "Ask me anything!", "Let's explore together.", "What would you like to know?",
-    "Curious about something?", "How can I help you today?", "Let's get started!",
-    "What are you studying?", "Need help with homework?", "Let's solve a problem!",
-    "What's your question?", "Think. Ask. Learn.", "Knowledge awaits you.",
-    "Let's dive in!", "What brings you here?", "Ready when you are.",
-    "Let's figure it out together.", "Got a tough question?", "I'm here to help.",
-    "Let's make today productive.", "What topic interests you?", "Fire away!",
-    "Challenge me with a question.", "Learning never stops.", "Stay curious, stay sharp.",
-    "One question at a time.", "Your study buddy is ready.", "Let's crack this together.",
-    "No question is too small.", "Explore. Discover. Grow.", "What shall we learn today?",
-    "Tell me what you need.", "Stuck on something?", "Let me help you out.",
-    "Wisdom starts with a question.", "Every expert was once a beginner.",
-    "Keep asking, keep growing.", "Your journey starts here.", "Think big, ask bigger.",
-    "Let's build understanding.", "Dare to be curious.", "Questions are the answer.",
-    "Unlock your potential.", "Let's make progress.", "What's the next challenge?",
-    "I'm all ears.", "Bring it on!", "The world is your classroom."
-]
+GREETINGS = {
+    "ko": [
+        "안녕하세요? 무엇을 도와드릴까요?", "궁금한 것이 있으신가요?", "새로운 것을 배울 준비가 되셨나요?",
+        "무엇이든 물어보세요!", "함께 탐구해 봅시다.", "알고 싶은 것이 무엇인가요?"
+    ],
+    "en": [
+        "How are you?", "What's on your mind?", "Ready to learn something new?",
+        "Ask me anything!", "Let's explore together.", "What would you like to know?",
+        "Curious about something?", "How can I help you today?", "Let's get started!",
+        "What are you studying?", "Need help with homework?", "Let's solve a problem!",
+        "What's your question?", "Think. Ask. Learn.", "Knowledge awaits you.",
+        "Let's dive in!", "What brings you here?", "Ready when you are.",
+        "Let's figure it out together.", "Got a tough question?", "I'm here to help.",
+        "Let's make today productive.", "What topic interests you?", "Fire away!",
+        "Challenge me with a question.", "Learning never stops.", "Stay curious, stay sharp.",
+        "One question at a time.", "Your study buddy is ready.", "Let's crack this together.",
+        "No question is too small.", "Explore. Discover. Grow.", "What shall we learn today?",
+        "Tell me what you need.", "Stuck on something?", "Let me help you out.",
+        "Wisdom starts with a question.", "Every expert was once a beginner.",
+        "Keep asking, keep growing.", "Your journey starts here.", "Think big, ask bigger.",
+        "Let's build understanding.", "Dare to be curious.", "Questions are the answer.",
+        "Unlock your potential.", "Let's make progress.", "What's the next challenge?",
+        "I'm all ears.", "Bring it on!", "The world is your classroom."
+    ]
+}
+
+# UI Strings / UI 문자열
+UI_STRINGS = {
+    "ko": {
+        "title": "StudyAI Terminal - 파이썬 에디션",
+        "btn_clear": "화면 지우기",
+        "btn_reset": "대화 초기화",
+        "btn_draw": "화면 복구",
+        "btn_lang": "한글",
+        "prompt": "studyai>",
+        "banner_title": "StudyAI 터미널",
+        "banner_sub": "파이썬 에디션 • Mistral AI",
+        "banner_hint": "질문을 입력하고 엔터를 누르세요.",
+        "banner_cmd": "명령어: /clear, /sclear, /draw, /trans, /help, /exit",
+        "msg_sclear": "[SYSTEM] 세션 및 AI 기억이 초기화되었습니다.",
+        "msg_clear": "[SYSTEM] 화면이 지워졌습니다. (기억 유지됨)",
+        "msg_draw": "[SYSTEM] 화면이 복구되었습니다.",
+        "msg_draw_fail": "[SYSTEM] 복구할 화면이 없습니다.",
+        "msg_trans": "[SYSTEM] 언어가 한국어로 전환되었습니다."
+    },
+    "en": {
+        "title": "StudyAI Terminal - Python Edition",
+        "btn_clear": "Clear Screen",
+        "btn_reset": "Reset Session",
+        "btn_draw": "Restore Screen",
+        "btn_lang": "English",
+        "prompt": "studyai>",
+        "banner_title": "StudyAI Terminal",
+        "banner_sub": "Python Edition • Mistral AI",
+        "banner_hint": "Type your question and press Enter.",
+        "banner_cmd": "Commands: /clear, /sclear, /draw, /trans, /help, /exit",
+        "msg_sclear": "[SYSTEM] Session and memory cleared.",
+        "msg_clear": "[SYSTEM] Screen cleared. (AI still remembers)",
+        "msg_draw": "[SYSTEM] Screen restored.",
+        "msg_draw_fail": "[SYSTEM] Nothing to draw.",
+        "msg_trans": "[SYSTEM] Language switched to English."
+    }
+}
 
 # System prompt / 시스템 프롬프트
 SYSTEM_PROMPT = (
@@ -231,12 +275,6 @@ class HangulAutomata:
 
     def __init__(self):
         self.reset()
-
-    def reset(self):
-        self.cho = -1
-        self.jung = -1
-        self.jong = -1
-        self.buffer = ""
 
     def decompose(self, char):
         """
@@ -435,7 +473,7 @@ class HangulLineEdit(QLineEdit):
             self.commit_composition()
             self.is_hangul = is_hangul
             mode_str = "KO" if self.is_hangul else "EN"
-            print(f"[MODE] Switched to {mode_str}")
+            # print(f"[MODE] Switched to {mode_str}") # Debug print
             return True
         return False
 
@@ -447,14 +485,6 @@ class HangulLineEdit(QLineEdit):
             self.commit_composition()
             self.is_hangul = not self.is_hangul
             self.mode_changed.emit(self.is_hangul)
-            mode_str = "KO" if self.is_hangul else "EN"
-
-            print(f"[MODE] Switched to {mode_str}")
-            # Update window title to show mode
-            window = self.window()
-            if window:
-                title = window.windowTitle().split(" [")[0]
-                window.setWindowTitle(f"{title} [{mode_str}]")
             return
 
         # Trigger completer for '/' / 슬래시 입력 시 자동완성 트리거
@@ -586,14 +616,22 @@ class StudyAITerminal(QMainWindow):
         self.current_response = ""
         self.dot_count = 0
         self.dot_timer = None
-        self.last_screen_html = "" # For /cancel_clear restore
+        self.last_screen_html = "" # For /draw restore
         
+        # UI language based on locale / 로캘 기반 UI 언어
+        try:
+            sys_lang = locale.getdefaultlocale()[0]
+            self.ui_lang = "ko" if sys_lang and "ko" in sys_lang.lower() else "en"
+        except:
+            self.ui_lang = "en"
+            
         self.signals = StreamSignals()
         self.signals.chunk_received.connect(self.on_chunk_received)
+        self.signals.stream_error.connect(self.on_stream_error) # Corrected from error_occurred
         self.signals.stream_finished.connect(self.on_stream_finished)
-        self.signals.stream_error.connect(self.on_stream_error)
         
         self.setup_ui()
+        self.sync_language_state()
         self.show_banner()
     
     def setup_ui(self):
@@ -656,12 +694,12 @@ class StudyAITerminal(QMainWindow):
         input_container.setStyleSheet("background-color: #1a1a1a;")
         layout.addWidget(input_container)
         
-        # Footer area (Buttons + Context) / 하단 영역 (버튼 + 컨텍스트)
+        # Footer area (Buttons + Context) / 하단 영역
         footer_layout = QHBoxLayout()
         footer_layout.setContentsMargins(12, 4, 12, 4)
         footer_layout.setSpacing(10)
         
-        # Action Buttons (Left side) / 실행 버튼 (왼쪽)
+        # Action Buttons
         btn_style = """
             QPushButton {
                 background-color: #333333;
@@ -670,47 +708,39 @@ class StudyAITerminal(QMainWindow):
                 padding: 4px 10px;
                 border-radius: 3px;
                 font-family: Monospace;
-                font-size: 10px;
+                font-size: 11px;
             }
-            QPushButton:hover {
-                background-color: #444444;
-                color: #ffffff;
-            }
-            QPushButton:pressed {
-                background-color: #222222;
-            }
+            QPushButton:hover { background-color: #444444; color: #ffffff; }
         """
         
-        self.btn_clear = QPushButton("CLEAR")
-        self.btn_clear.setToolTip("Clear Screen / 화면 지우기 (/clear)")
-        self.btn_clear.clicked.connect(lambda: self.input_field.setText("/clear") or self.on_enter())
+        self.btn_clear = QPushButton()
+        self.btn_clear.setStyleSheet(btn_style)
+        self.btn_clear.clicked.connect(lambda: self.execute_command("/clear"))
         
-        self.btn_sclear = QPushButton("RESET")
-        self.btn_sclear.setToolTip("Reset Session / 세션 초기화 (/sclear)")
-        self.btn_sclear.clicked.connect(lambda: self.input_field.setText("/sclear") or self.on_enter())
+        self.btn_reset = QPushButton()
+        self.btn_reset.setStyleSheet(btn_style)
+        self.btn_reset.clicked.connect(lambda: self.execute_command("/sclear"))
         
-        self.btn_draw = QPushButton("DRAW")
-        self.btn_draw.setToolTip("Restore Screen / 화면 복구 (/draw)")
-        self.btn_draw.clicked.connect(lambda: self.input_field.setText("/draw") or self.on_enter())
+        self.btn_draw = QPushButton()
+        self.btn_draw.setStyleSheet(btn_style)
+        self.btn_draw.clicked.connect(lambda: self.execute_command("/draw"))
         
-        for btn in [self.btn_clear, self.btn_sclear, self.btn_draw]:
-            btn.setStyleSheet(btn_style)
-            footer_layout.addWidget(btn)
-            
+        footer_layout.addWidget(self.btn_clear)
+        footer_layout.addWidget(self.btn_reset)
+        footer_layout.addWidget(self.btn_draw)
         footer_layout.addStretch()
         
-        # Context bar / 컨텍스트 바
+        # Context bar
         self.context_bar = QLabel("Context: 0/32000 tokens (0%)")
         self.context_bar.setFont(QFont("Monospace", 9))
         self.context_bar.setStyleSheet("color: #666666;")
         footer_layout.addWidget(self.context_bar)
         
-        # Language Toggle Button (Right side) / 언어 전환 버튼 (오른쪽)
-        self.lang_btn = QPushButton("EN")
-        self.lang_btn.setFixedWidth(60)
+        # Toggle Button
+        self.lang_btn = QPushButton()
+        self.lang_btn.setFixedWidth(80)
         self.lang_btn.setFont(QFont("Monospace", 10, QFont.Bold))
         self.lang_btn.clicked.connect(self.toggle_lang)
-        self.update_lang_btn_style()
         footer_layout.addWidget(self.lang_btn)
         
         footer_container = QWidget()
@@ -718,33 +748,42 @@ class StudyAITerminal(QMainWindow):
         footer_container.setStyleSheet("background-color: #111111; border-top: 1px solid #333333;")
         layout.addWidget(footer_container)
         
-        # Focus input / 입력 포커스
+        # Focus input
         self.input_field.setFocus()
+
+    def execute_command(self, cmd):
+        self.input_field.setText(cmd)
+        self.on_enter()
+
+    def sync_language_state(self):
+        is_ko = (self.ui_lang == "ko")
+        self.input_field.set_mode(is_ko)
+        self.update_ui_texts()
+        self.update_lang_btn_style()
 
     def on_mode_changed(self, is_ko):
         """Handle mode change from hotkey / 핫키를 통한 모드 변경 처리"""
+        self.ui_lang = "ko" if is_ko else "en"
+        self.update_ui_texts()
         self.update_lang_btn_style()
-        # Update window title / 윈도우 제목 업데이트
-        mode_str = "KO" if is_ko else "EN"
-        title = self.windowTitle().split(" [")[0]
-        self.setWindowTitle(f"{title} [{mode_str}]")
 
     def toggle_lang(self):
-
         """Manual toggle via button / 버튼을 통한 수동 전환"""
-        new_mode = not self.input_field.is_hangul
-        self.input_field.set_mode(new_mode)
-        self.update_lang_btn_style()
-        
-        # Also update window title / 윈도우 제목도 업데이트
-        mode_str = "KO" if new_mode else "EN"
-        title = self.windowTitle().split(" [")[0]
-        self.setWindowTitle(f"{title} [{mode_str}]")
+        self.ui_lang = "en" if self.ui_lang == "ko" else "ko"
+        self.sync_language_state()
+
+    def update_ui_texts(self):
+        strs = UI_STRINGS[self.ui_lang]
+        self.setWindowTitle(strs["title"])
+        self.btn_clear.setText(strs["btn_clear"])
+        self.btn_reset.setText(strs["btn_reset"])
+        self.btn_draw.setText(strs["btn_draw"])
+        self.prompt_label.setText(strs["prompt"])
 
     def update_lang_btn_style(self):
         """Update button appearance / 버튼 외형 업데이트"""
-        is_ko = self.input_field.is_hangul
-        self.lang_btn.setText("한" if is_ko else "EN")
+        is_ko = (self.ui_lang == "ko")
+        self.lang_btn.setText("한글" if is_ko else "English")
         if is_ko:
             # High-visibility KO mode / 눈에 띄는 한국어 모드
             self.lang_btn.setStyleSheet("""
@@ -798,31 +837,20 @@ class StudyAITerminal(QMainWindow):
     
     def show_banner(self):
         """Show startup banner / 시작 배너 표시"""
-        greeting = random.choice(GREETINGS)
+        strs = UI_STRINGS[self.ui_lang]
+        greeting = random.choice(GREETINGS[self.ui_lang])
         
-        # Fixed-width banner with proper alignment / 고정 너비 배너, 올바른 정렬
-        BOX_W = 44  # inner width / 내부 너비
-        
-        title = "StudyAI Terminal"
-        subtitle = "Python Edition • Mistral AI"
-        
-        # Center-pad strings inside the box / 박스 안에 문자열 가운데 정렬
-        title_pad = (BOX_W - len(title)) // 2
-        title_r = BOX_W - len(title) - title_pad
-        sub_pad = (BOX_W - len(subtitle)) // 2
-        sub_r = BOX_W - len(subtitle) - sub_pad
+        BOX_W = 48
+        title = strs["banner_title"]
+        subtitle = strs["banner_sub"]
         
         self.append_text("╔" + "═" * BOX_W + "╗\n", "#6aff6a")
-        self.append_text("║" + " " * title_pad, "#6aff6a")
-        self.append_text(title, "#ffffff")
-        self.append_text(" " * title_r + "║\n", "#6aff6a")
-        self.append_text("║" + " " * sub_pad, "#6aff6a")
-        self.append_text(subtitle, "#888888")
-        self.append_text(" " * sub_r + "║\n", "#6aff6a")
+        self.append_text("║" + title.center(BOX_W - 2) + "║\n", "#6aff6a")
+        self.append_text("║" + subtitle.center(BOX_W - 2) + "║\n", "#888888")
         self.append_text("╚" + "═" * BOX_W + "╝\n", "#6aff6a")
         self.append_text(f"\n  {greeting}\n", "#aaaaaa")
-        self.append_text("  Type your question and press Enter.\n", "#666666")
-        self.append_text("  Commands: /clear, /sclear, /draw, /trans, /help, /exit\n\n", "#666666")
+        self.append_text(f"  {strs['banner_hint']}\n", "#666666")
+        self.append_text(f"  {strs['banner_cmd']}\n\n", "#666666")
     
     def on_enter(self):
         """Handle user input / 사용자 입력 처리"""
@@ -837,29 +865,36 @@ class StudyAITerminal(QMainWindow):
         self.input_field.clear()
 
         # Handle slash commands / 슬래시 명령어 처리
+        strs = UI_STRINGS[self.ui_lang]
         if user_input == "/sclear":
             # RESET BOTH: Memory and screen / 기억과 화면 모두 초기화
             self.conversation_history = []
             self.total_tokens = 0
             self.terminal.clear()
             self.show_banner()
-            self.append_text("\n[SYSTEM] Session and memory cleared. / 세션 및 AI 기억이 초기화되었습니다.\n", "#569cd6")
+            self.append_text("\n" + strs["msg_sclear"] + "\n", "#569cd6")
             return
         
         elif user_input == "/clear":
             # CLEAR SCREEN ONLY: Keep memory / 화면만 지움 (기억 유지)
             self.last_screen_html = self.terminal.toHtml() # Save for undo
             self.terminal.clear()
-            self.append_text("\n[SYSTEM] Screen cleared. (AI still remembers) / 화면이 지워졌습니다. (기억 유지됨)\n", "#569cd6")
+            self.append_text("\n" + strs["msg_clear"] + "\n", "#569cd6")
             return
         
         elif user_input == "/draw":
             # RESTORE PREVIOUS SCREEN / 이전 화면 복구
             if self.last_screen_html:
                 self.terminal.setHtml(self.last_screen_html)
-                self.append_text("\n[SYSTEM] Screen restored. / 화면이 복구되었습니다.\n", "#569cd6")
+                self.append_text("\n" + strs["msg_draw"] + "\n", "#569cd6")
             else:
-                self.append_text("\n[SYSTEM] Nothing to draw. / 복구할 화면이 없습니다.\n", "#f44747")
+                self.append_text("\n" + strs["msg_draw_fail"] + "\n", "#f44747")
+            return
+
+        elif user_input == "/trans":
+            # Toggle language mode / 언어 전환
+            self.toggle_lang()
+            self.append_text("\n" + strs["msg_trans"] + "\n", "#569cd6")
             return
 
         elif user_input == "/help":
@@ -869,16 +904,6 @@ class StudyAITerminal(QMainWindow):
         elif user_input == "/exit":
             self.close()
             return
-            
-        elif user_input == "/trans":
-            # Determine language based on current input mode / 현재 입력 모드에 기반하여 언어 결정
-            is_ko = self.input_field.is_hangul
-            lang_name = "Korean" if is_ko else "English"
-            
-            # Insert invisible system instruction / 보이지 않는 시스템 지시어 삽입
-            user_input = f"[SYSTEM: PLEASE RESPOND IN {lang_name.upper()}] " + user_input
-
-            # Continue to send logic
             
         # Append user message to terminal / 사용자 메시지 터미널에 추가
         self.append_text(f"\nYOU: {user_input}\n", "#4ec9b0")
