@@ -85,6 +85,27 @@ GdkPixbuf* svg_to_pixbuf(const char *svg_data, int width, int height) {
     return pixbuf;
 }
 
+// Replace black color in SVG with white for dark mode
+char* swap_svg_colors(const char *svg_data, int to_white) {
+    if (!to_white) return strdup(svg_data);
+    
+    GString *result = g_string_new("");
+    const char *search = "#000000";
+    const char *replace = "#ffffff";
+    
+    const char *pos = svg_data;
+    const char *found;
+    
+    while ((found = strstr(pos, search)) != NULL) {
+        g_string_append_len(result, pos, found - pos);
+        g_string_append(result, replace);
+        pos = found + strlen(search);
+    }
+    g_string_append(result, pos);
+    
+    return g_string_free(result, FALSE);
+}
+
 // --- Enhanced Markdown Parser with Heading Support ---
 
 char* markdown_to_pango(const char *text) {
@@ -224,10 +245,14 @@ GtkWidget* create_svg_image(const char *svg_filepath, int size) {
         return gtk_image_new(); // Return empty image on error
     }
     
-    GdkPixbuf *pixbuf = svg_to_pixbuf(svg_data, size, size);
+    // Swap colors based on theme (black -> white for dark mode)
+    char *themed_svg = swap_svg_colors(svg_data, is_dark_mode);
+    free(svg_data);
+    
+    GdkPixbuf *pixbuf = svg_to_pixbuf(themed_svg, size, size);
     GtkWidget *image = gtk_image_new_from_pixbuf(pixbuf);
     
-    free(svg_data);
+    free(themed_svg);
     if (pixbuf) g_object_unref(pixbuf);
     
     return image;

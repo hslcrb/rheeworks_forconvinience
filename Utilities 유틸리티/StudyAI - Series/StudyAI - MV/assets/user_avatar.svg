@@ -1,17 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-        <linearGradient id="userGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#11998e;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#38ef7d;stop-opacity:1" />
-        </linearGradient>
-    </defs>
-    <!-- Outer circle -->
-    <circle cx="20" cy="20" r="19" fill="url(#userGrad)" />
-    <!-- User head - simple geometric -->
-    <circle cx="20" cy="14" r="7" fill="white" opacity="0.95" />
-    <!-- Body - geometric shield shape -->
-    <path d="M 20 22 L 10 26 Q 10 34 20 37 Q 30 34 30 26 Z" fill="white" opacity="0.95" />
-    <!-- Accent dots -->
-    <circle cx="20" cy="14" r="2" fill="url(#userGrad)" opacity="0.3" />
+    <!-- Simple user silhouette -->
+    <circle cx="20" cy="20" r="16" fill="none" stroke="#000000" stroke-width="2" />
+    <!-- Head -->
+    <circle cx="20" cy="15" r="5" fill="#000000" />
+    <!-- Body -->
+    <path d="M 12 30 Q 20 26 28 30" stroke="#000000" stroke-width="3" fill="none" stroke-linecap="round" />
 </svg>
