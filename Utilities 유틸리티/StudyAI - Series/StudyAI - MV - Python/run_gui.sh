@@ -6,15 +6,22 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # 입력 방식 설정 (한글 입력 지원) / Input method setup (Korean input support)
-# Detect and set IM module for Qt / Qt용 IM 모듈 감지 및 설정
-if [ -n "$GTK_IM_MODULE" ]; then
-    export QT_IM_MODULE="$GTK_IM_MODULE"
+# PySide6 bundled Qt often conflicts with system fcitx plugin.
+# Using 'ibus' is generally more stable with PySide6's bundled ibus plugin.
+
+if command -v ibus-daemon >/dev/null 2>&1; then
+    export QT_IM_MODULE=ibus
+    export XMODIFIERS="@im=ibus"
+    echo "[INFO] Using IBus for Korean input support."
+else
+    # Fallback to fcitx if ibus is not found, but warn about potential issues
+    export QT_IM_MODULE=fcitx
+    export XMODIFIERS="@im=fcitx"
+    echo "[WARN] IBus not found. Falling back to fcitx (might have compatibility issues with Alt-key)."
 fi
 
-# Ensure system Qt plugins are accessible for IM / IM을 위한 시스템 Qt 플러그인 접근 보장
-if [ -d "/usr/lib/x86_64-linux-gnu/qt6/plugins" ]; then
-    export QT_PLUGIN_PATH="${QT_PLUGIN_PATH:+$QT_PLUGIN_PATH:}/usr/lib/x86_64-linux-gnu/qt6/plugins"
-fi
+# Ensure system Qt plugins are NOT mixed if using bundled PySide6 plugins
+# Instead, we rely on PySide6's own plugins now.
 
 # 가상환경 확인 및 생성 / Check and create virtual environment
 if [ ! -d "venv" ]; then

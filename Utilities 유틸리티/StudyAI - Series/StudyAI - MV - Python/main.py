@@ -21,38 +21,24 @@ def setup_input_method():
     """
     OS 독립적 입력 방식 설정 / OS-independent input method setup.
     Ensures Korean (한글) input works properly across Linux IM frameworks.
+    Note: PySide6 bundled Qt often has issues with system fcitx plugins due to 
+    undefined symbols (Qt_6_PRIVATE_API). IBus is generally more compatible.
     """
     if platform.system() != "Linux":
         return
     
-    # Detect system IM module / 시스템 IM 모듈 감지
+    # Environment variables should ideally be set in the launcher script (run_gui.sh).
+    # This is a fallback to ensure variables are set if run directly.
     im_module = os.environ.get("QT_IM_MODULE", "").lower()
     gtk_im = os.environ.get("GTK_IM_MODULE", "").lower()
     
-    if "fcitx" in im_module or "fcitx" in gtk_im:
-        os.environ["QT_IM_MODULE"] = "fcitx"
-        os.environ.setdefault("XMODIFIERS", "@im=fcitx")
-        
-        # Copy system fcitx Qt6 plugin into PySide6 if missing
-        # PySide6 자체 Qt6를 사용하므로 시스템 플러그인을 직접 복사해야 함
-        try:
-            import PySide6
-            pyside_plugin_dir = os.path.join(
-                os.path.dirname(PySide6.__file__),
-                "Qt", "plugins", "platforminputcontexts"
-            )
-            target = os.path.join(pyside_plugin_dir, "libfcitxplatforminputcontextplugin-qt6.so")
-            source = "/usr/lib/x86_64-linux-gnu/qt6/plugins/platforminputcontexts/libfcitxplatforminputcontextplugin-qt6.so"
-            
-            if not os.path.exists(target) and os.path.exists(source):
-                import shutil
-                shutil.copy2(source, target)
-        except Exception:
-            pass
-    
-    elif "ibus" in im_module or "ibus" in gtk_im:
+    # Prioritize IBus for PySide6 compatibility
+    if "ibus" in im_module or "ibus" in gtk_im or not im_module:
         os.environ["QT_IM_MODULE"] = "ibus"
         os.environ.setdefault("XMODIFIERS", "@im=ibus")
+    elif "fcitx" in im_module or "fcitx" in gtk_im:
+        os.environ["QT_IM_MODULE"] = "fcitx"
+        os.environ.setdefault("XMODIFIERS", "@im=fcitx")
 
 
 # Must be called BEFORE QApplication import / QApplication import 전에 호출 필수
@@ -282,6 +268,8 @@ class StudyAITerminal(QMainWindow):
         # Input field / 입력 필드
         self.input_field = QLineEdit()
         self.input_field.setFont(QFont("Monospace", 12))
+        self.input_field.setAttribute(Qt.WA_InputMethodEnabled, True)
+        self.input_field.setInputMethodHints(Qt.ImhNone)
         self.input_field.setStyleSheet("""
             QLineEdit {
                 background-color: #1a1a1a;
@@ -602,6 +590,13 @@ def main():
     app.setPalette(palette)
     
     window = StudyAITerminal()
+    
+    # Debug IM status / IM 상태 디버그
+    im = app.inputMethod()
+    print(f"[IM DEBUG] Visible: {im.isVisible()}")
+    print(f"[IM DEBUG] Locale: {im.locale().name()}")
+    print(f"[IM DEBUG] QT_IM_MODULE: {os.environ.get('QT_IM_MODULE')}")
+    
     window.show()
     sys.exit(app.exec())
 
