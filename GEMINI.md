@@ -16,18 +16,19 @@ This project is a monorepo containing multiple convenience tools.
 
 ### 서브 프로젝트 / Sub-Projects
 
-1. **Typer-타이퍼 Series**
-   - 베이직 버전-Basic Version: 기본 가짜 타이핑 도구 (Premium UI)
-   - 포모도로 버전-Pomodoro Version: 포모도로 타이머 + 숨겨진 타이핑 도구 (Premium UI)
+1. **Typer-타이퍼 Series** (Path: `Utilities 유틸리티/Typer-타이퍼 Series`)
+   - 베이직 버전-Basic Version: 기본 가짜 타이핑 도구 (Premium UI/CLI)
+   - 포모도로 버전-Pomodoro Version: 포모도로 타이머 + 숨겨진 타이핑 도구 (Premium UI/CLI)
 
-2. **Rucia-루시아 Series**
-   - Pris-프리스: 공부/코딩 시간 통계 대시보드 (Premium UI)
-   - Lavendar-라벤다르: 실전성 최강 실습실 자동 백업 도구
-   - Frytesty-프라이테스티: 알고리즘 문제풀이 로컬 테스트기
+2. **Rucia-루시아 Series** (Path: `Utilities 유틸리티/Rucia-루시아 Series`)
+   - Pris-프리스: 공부/코딩 시간 통계 대시보드 (Premium UI/CLI)
+   - Lavendar-라벤다르: 실전성 최강 실습실 자동 백업 도구 (Premium UI/CLI)
+   - Frytesty-프라이테스티: 알고리즘 문제풀이 로컬 테스트기 (Premium UI/CLI)
 
-3. **Automaker-오토메이커 Series**
-   - 클리커-Clicker: 프리미엄 오토 클릭커 도구
-   - 텍스트생성기-Text Generator: 프리미엄 더미 텍스트 생성 도구
+3. **Automaker-오토메이커 Series** (Path: `Utilities 유틸리티/Automaker-오토메이커 Series`)
+   - 클리커-Clicker: 프리미엄 오토 클릭커 도구 (Premium UI/CLI)
+   - 텍스트생성기-Text Generator: 프리미엄 더미 텍스트 생성 도구 (Premium UI/CLI)
+   - 프로젝트 템플릿 생성-Generate Project Templates: 다국어 스캐폴딩 도구 (Premium UI/CLI)
 
 ## 개발 지침 / Development Guidelines
 
@@ -37,10 +38,11 @@ This project is a monorepo containing multiple convenience tools.
 Each sub-project has its own `venv`:
 
 ```bash
-cd "Typer-타이퍼 Series/베이직 버전-Basic Version"
+cd "Utilities 유틸리티/Typer-타이퍼 Series/베이직 버전-Basic Version"
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+./run_gui.sh # or ./run_cli.sh
 ```
 
 ### 파일 보존 정책 / File Preservation Policy

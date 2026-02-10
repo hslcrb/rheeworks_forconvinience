@@ -11,23 +11,18 @@
 This project is organized into the following sub-project series, each with its own virtual environment (`venv`) and dependencies.
 
 ### 1. Typer-타이퍼 Series
-- **[베이직 버전-Basic Version](file:///home/rheehose/문서/rheeworks_forconvinience/Typer-타이퍼%20Series/베이직%20버전-Basic%20Version/)**: 원천 텍스트를 읽어 키보드 입력 시 가짜로 타이핑해주는 프리미엄 도구.
-- **[포모도로 버전-Pomodoro Version](file:///home/rheehose/문서/rheeworks_forconvinience/Typer-타이퍼%20Series/포모도로%20버전-Pomodoro%20Version/)**: 포모도로 타이머와 가짜 타이핑 비밀 콘솔이 결합된 도구.
+- **[베이직 버전-Basic Version](file:///home/rheehose/문서/rheeworks_forconvinience/Utilities%20유틸리티/Typer-타이퍼%20Series/베이직%20버전-Basic%20Version/)**: 원천 텍스트 기반 가짜 타이핑 도구 (GUI/CLI)
+- **[포모도로 버전-Pomodoro Version](file:///home/rheehose/문서/rheeworks_forconvinience/Utilities%20유틸리티/Typer-타이퍼%20Series/포모도로%20버전-Pomodoro%20Version/)**: 포모도로 타이머 + 비밀 타이핑 콘솔 (GUI/CLI)
 
-### 2. Rucia-루시아 Series [NEW]
-- **[Pris-프리스](file:///home/rheehose/문서/rheeworks_forconvinience/Rucia-루시아%20Series/Pris-프리스/)**: 공부/코딩 시간 통계 및 가시화 대시보드 (Premium UI) / Study/Coding time stats dashboard.
-- **[Lavendar-라벤다르](file:///home/rheehose/문서/rheeworks_forconvinience/Rucia-루시아%20Series/Lavendar-라벤다르/)**: 실습실 파일 자동 백업 및 관리 도구 / Lab file auto-backup & management tool.
-- **[Frytesty-프라이테스티](file:///home/rheehose/문서/rheeworks_forconvinience/Rucia-루시아%20Series/Frytesty-프라이테스티/)**: 알고리즘 문제풀이 로직 자동 테스트기 / Algorithm problem auto-tester.
+### 2. Rucia-루시아 Series
+- **[Pris-프리스](file:///home/rheehose/문서/rheeworks_forconvinience/Utilities%20유틸리티/Rucia-루시아%20Series/Pris-프리스/)**: 생산성 통계 대시보드 (GUI/CLI)
+- **[Lavendar-라벤다르](file:///home/rheehose/문서/rheeworks_forconvinience/Utilities%20유틸리티/Rucia-루시아%20Series/Lavendar-라벤다르/)**: 자동 파일 백업 도구 (GUI/CLI)
+- **[Frytesty-프라이테스티](file:///home/rheehose/문서/rheeworks_forconvinience/Utilities%20유틸리티/Rucia-루시아%20Series/Frytesty-프라이테스티/)**: 알고리즘 문제풀이 자동 테스트기 (GUI/CLI)
 
 ### 3. Automaker-오토메이커 Series
-- **[클리커-Clicker](file:///home/rheehose/문서/rheeworks_forconvinience/Automaker-오토메이커%20Series/클리커-Clicker/)**: 고성능 마우스 오토 클릭커 도구.
-- **[텍스트생성기-Text Generator](file:///home/rheehose/문서/rheeworks_forconvinience/Automaker-오토메이커%20Series/텍스트생성기-Text%20Generator/)**
-  - 다양한 언어와 옵션의 더미 텍스트 생성 도구
-  - Dummy text generation tool with various languages and options
-- **[프로젝트 템플릿 생성-Project Template Generator](file:///home/rheehose/문서/rheeworks_forconvinience/Automaker-오토메이커%20Series/프로젝트%20템플릿%20생성-Generate%20Project%20Templates/)**
-  - **다국어 지원 (JSP, Python, C, Node.js, Web)** 스캐폴딩 도구
-  - **Multi-language Scaffolding Tool** (JSP, Python, C, Node.js, Web)
-  - **Premium UI**: 도구별 최적화된 초기 환경 및 코드 자동 구성
+- **[클리커-Clicker](file:///home/rheehose/문서/rheeworks_forconvinience/Utilities%20유틸리티/Automaker-오토메이커%20Series/클리커-Clicker/)**: 고성능 마우스 오토 클릭커 (GUI/CLI)
+- **[텍스트생성기-Text Generator](file:///home/rheehose/문서/rheeworks_forconvinience/Utilities%20유틸리티/Automaker-오토메이커%20Series/텍스트생성기-Text%20Generator/)**: 더미 텍스트 생성 도구 (GUI/CLI)
+- **[프로젝트 템플릿 생성-Project Template Generator](file:///home/rheehose/문서/rheeworks_forconvinience/Utilities%20유틸리티/Automaker-오토메이커%20Series/프로젝트%20템플릿%20생성-Generate%20Project%20Templates/)**: 다국어 스캐폴딩 도구 (GUI/CLI)
 
 ---
 
@@ -38,14 +33,13 @@ This project is organized into the following sub-project series, each with its o
 - **`recycle_trash/`**: 코드 수정 시 원본 파일을 안전하게 백업하는 재활용 휴지통 폴더입니다. / Recycle bin folder for safely backing up original files during modifications.
 - **`.github/workflows/`**: 모노레포 전체의 자동 빌드 및 배포(CI/CD) 설정을 관리합니다. / Manages automated build and deployment (CI/CD) for the entire monorepo.
 
-### 시작하기 / Getting Started
-각 프로젝트 폴더로 이동하여 해당 가상환경을 활성화한 후 실행하십시오.  
-Navigate to each project folder, activate its venv, and run.
+각 프로젝트 폴더로 이동하여 신규 제공되는 실행 스크립트(`run_*.sh` 또는 `run_*.bat`)를 사용하십시오.  
+Navigate to each project folder and use the new launch scripts.
 
 ```bash
-cd "Typer-타이퍼 Series/베이직 버전-Basic Version"
-source venv/bin/activate
-python main.py
+cd "Utilities 유틸리티/Typer-타이퍼 Series/베이직 버전-Basic Version"
+./run_gui.sh # GUI 실행
+./run_cli.sh # CLI 실행
 ```
 
 ---
