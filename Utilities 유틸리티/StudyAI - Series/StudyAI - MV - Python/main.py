@@ -234,9 +234,58 @@ class HangulAutomata:
         self.cho = -1
         self.jung = -1
         self.jong = -1
-        self.last_jung = -1  # For complex jung
-        self.last_jong = -1  # For complex jong
         self.buffer = ""
+
+    def decompose(self, char):
+        """
+        Decomposes a finished Hangul character into Jamo indices.
+        완성된 한글 한 글자를 자모 인덱스로 분해합니다.
+        """
+        code = ord(char)
+        if not (0xAC00 <= code <= 0xD7A3):
+            # Not a Hangul syllable / 한글 음절이 아님
+            if char in self.CHO:
+                self.cho = self.CHO.index(char)
+                self.jung = -1
+                self.jong = -1
+                return True
+            return False
+
+        code -= 0xAC00
+        self.jong = code % 28
+        self.jung = (code // 28) % 21
+        self.cho = (code // 28) // 21
+        # Jong 0 means no jongseong
+        if self.jong == 0:
+            self.jong = -1
+        return True
+
+    def backspace(self):
+        """
+        Deletes one Jamo from the current composition.
+        현재 조합 중인 글자에서 자모 하나를 지웁니다.
+        """
+        if self.jong != -1:
+            # Check complex jong / 복합 종성 분체
+            current_jong = self.JONG[self.jong]
+            for (j1, j2), combined in self.COMPLEX_JONG.items():
+                if combined == current_jong:
+                    self.jong = self.JONG.index(j1)
+                    return self.combine()
+            self.jong = -1
+        elif self.jung != -1:
+            # Check complex jung / 복합 중성 분체
+            current_jung = self.JUNG[self.jung]
+            for (j1, j2), combined in self.COMPLEX_JUNG.items():
+                if combined == current_jung:
+                    self.jung = self.JUNG.index(j1)
+                    return self.combine()
+            self.jung = -1
+        elif self.cho != -1:
+            self.cho = -1
+        
+        return self.combine()
+
 
     def combine(self):
         if self.cho == -1:
@@ -362,6 +411,15 @@ class HangulLineEdit(QLineEdit):
         self.is_hangul = False
         self.automata = HangulAutomata()
         self.temp_composition = ""
+        
+        # Setup autocompletion / 자동완성 설정
+        from PySide6.QtWidgets import QCompleter
+        from PySide6.QtCore import QStringListModel
+        self.commands = ["/session_clear", "/sclear"]
+        self.completer = QCompleter(self.commands, self)
+        self.completer.setCaseSensitivity(Qt.CaseInsensitive)
+        self.completer.setCompletionMode(QCompleter.PopupCompletion)
+        self.setCompleter(self.completer)
 
     def keyPressEvent(self, event: QKeyEvent):
         # Toggle Hangul mode / 한영 전환
@@ -378,18 +436,43 @@ class HangulLineEdit(QLineEdit):
                 window.setWindowTitle(f"{title} [{mode_str}]")
             return
 
+        # Trigger completer for '/' / 슬래시 입력 시 자동완성 트리거
+        if event.text() == "/":
+            self.is_hangul = False # Switch to English temporarily for commands
+            super().keyPressEvent(event)
+            self.completer.complete()
+            return
+
         if not self.is_hangul:
             super().keyPressEvent(event)
             return
 
-        # Handle Backspace / 백스페이스 처리
+        # Handle Backspace / 백스페이스 처리 (자모 단위 삭제)
         if event.key() == Qt.Key_Backspace:
             if self.temp_composition:
-                self.temp_composition = ""
-                self.automata.reset()
+                # Decompose current composition / 현재 조합 중인 글자 분해
+                self.temp_composition = self.automata.backspace()
+                self.update_display()
             else:
-                super().keyPressEvent(event)
+                # No composition, try to decompose the character before cursor
+                # 커서 앞의 글자를 가져와서 분해 시도
+                cursor_pos = self.cursorPosition()
+                if cursor_pos > 0:
+                    text = self.text()
+                    char_to_del = text[cursor_pos-1]
+                    if self.automata.decompose(char_to_del):
+                        # Delete the character from LineEdit first
+                        self.setSelection(cursor_pos-1, 1)
+                        self.del_()
+                        # Now it's in composition mode
+                        self.temp_composition = self.automata.backspace()
+                        self.update_display()
+                    else:
+                        super().keyPressEvent(event)
+                else:
+                    super().keyPressEvent(event)
             return
+
 
         # Handle Return/Enter / 엔터 처리
         if event.key() in (Qt.Key_Return, Qt.Key_Enter):
@@ -422,6 +505,8 @@ class HangulLineEdit(QLineEdit):
     def commit_composition(self):
         if self.temp_composition:
             self.deselect()
+            # Move cursor to end of composition / 커서를 조합 문자 끝으로 이동
+            self.setSelection(self.cursorPosition(), 0)
             self.temp_composition = ""
             self.automata.reset()
 
@@ -430,12 +515,20 @@ class HangulLineEdit(QLineEdit):
         Shows composition char at cursor using selection trick.
         시각적으로 조합 중인 글자를 커서 위치에 선택 상태로 표시.
         """
+        # Note: insert() will replace any current selection
+        # insert()는 현재 선택된 영역을 대체함
+        pos = self.cursorPosition()
+        if self.hasSelectedText():
+            # If we already have a composition, the cursor is at the end of it
+            # 이미 조합 중인 경우, 커서는 선택 영역의 끝에 있음
+            pos = self.selectionStart()
+        
+        self.insert(self.temp_composition)
+        
         if self.temp_composition:
-            pos = self.cursorPosition()
-            self.insert(self.temp_composition)
-            # Select the just inserted char to show it's "in-progress"
-            # 방금 삽입된 문자를 선택 상태로 두어 조합 중임을 표시
+            # Select the newly inserted text to show it's "in-progress"
             self.setSelection(pos, len(self.temp_composition))
+
 
     def inputMethodEvent(self, event):
         # Disable system input method to prevent conflict / 시스템 입력기 충돌 방지
@@ -614,25 +707,33 @@ class StudyAITerminal(QMainWindow):
     
     def on_enter(self):
         """Handle user input / 사용자 입력 처리"""
-        text = self.input_field.text().strip()
-        if not text or self.is_streaming:
+        if self.is_streaming:
             return
-        
+
+        user_input = self.input_field.text().strip()
+        if not user_input:
+            return
+
+        # Clear input field / 입력 필드 초기화
         self.input_field.clear()
-        
-        # Handle commands / 명령어 처리
-        if text.startswith("/"):
-            self.handle_command(text)
+
+        # Handle slash commands / 슬래시 명령어 처리
+        if user_input in ("/session_clear", "/sclear"):
+            self.conversation_history = []
+            self.total_tokens = 0
+            self.terminal.clear()
+            self.show_banner()
+            self.append_text("\n[SYSTEM] Conversation history cleared. / 대화 내역이 초기화되었습니다.\n", "#569cd6")
             return
+
+        # Append user message to terminal / 사용자 메시지 터미널에 추가
+        self.append_text(f"\nYOU: {user_input}\n", "#4ec9b0")
         
-        # Show user input / 사용자 입력 표시
-        self.append_text("studyai> ", "#6aff6a")
-        self.append_text(f"{text}\n", "#ffffff")
-        
-        # Add to history / 기록에 추가
-        if len(self.conversation_history) < 100:
-            self.conversation_history.append({"role": "user", "content": text})
-            self.total_tokens += len(text) // 4
+        # Add to history / 기록에 추가 (max 100 turns)
+        self.conversation_history.append({"role": "user", "content": user_input})
+        self.total_tokens += len(user_input) // 4
+        if len(self.conversation_history) > 100:
+            self.conversation_history.pop(0)
         
         # Start streaming / 스트리밍 시작
         self.is_streaming = True
@@ -648,7 +749,7 @@ class StudyAITerminal(QMainWindow):
         self.dot_timer.start(300)
         
         # Start API thread / API 스레드 시작
-        thread = threading.Thread(target=self.api_call, args=(text,), daemon=True)
+        thread = threading.Thread(target=self.api_call, args=(user_input,), daemon=True)
         thread.start()
     
     def blink_dot(self):
