@@ -157,13 +157,15 @@ jobs:
             type=raw,value=latest
             type=sha
       
-      - name: Create Project-Specific Dockerfile
+      - name: Prepare Docker Build Context
         shell: bash
         run: |
-          # Create Dockerfile inside the project directory to simplify paths / 경로 단순화를 위해 프로젝트 디렉토리 내에 Dockerfile 생성
-          PROJECT_DIR="${{ matrix.project.path }}"
+          # Use a simple directory name to avoid path issues with Docker Buildx / 도커 Buildx의 경로 문제를 피하기 위해 단순한 디렉토리 명칭 사용
+          mkdir -p build_context
+          cp -a "${{ matrix.project.path }}/." build_context/
           
-          cat > "${PROJECT_DIR}/Dockerfile.project" <<'EOF'
+          # Create project-specific Dockerfile in a simple path / 단순한 경로 내에 프로젝트별 Dockerfile 생성
+          cat > build_context/Dockerfile.project <<'EOF'
           FROM python:3.11-slim
           WORKDIR /app
           
@@ -173,11 +175,9 @@ jobs:
               libx11-6 \
               && rm -rf /var/lib/apt/lists/*
           
-          # Copy only requirements first / requirements.txt 먼저 복사
+          # Copy files from simple context / 단순화된 컨텍스트에서 파일 복사
           COPY requirements.txt .
           RUN pip install --no-cache-dir -r requirements.txt
-          
-          # Copy the rest of the project / 나머지 프로젝트 파일 복사
           COPY . .
           
           CMD ["python", "main.py"]
@@ -186,8 +186,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: "${{ matrix.project.path }}"
-          file: "${{ matrix.project.path }}/Dockerfile.project"
+          context: build_context
+          file: build_context/Dockerfile.project
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
