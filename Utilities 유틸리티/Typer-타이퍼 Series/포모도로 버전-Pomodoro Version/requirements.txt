@@ -1,6 +1,4 @@
-# Python Dependencies for Typer Pomodoro Version / 타이퍼 포모도로 버전 파이썬 종속성
-# Rheehose (Rhee Creative) 2008-2026
-
-pynput==1.7.6
-tzlocal==5.2
-customtkinter==5.2.2
+customtkinter
+pynput
+pillow
+packaging

@@ -1,5 +1,4 @@
-# Python Dependencies for Automaker Clicker / 오토메이커 클리커 파이썬 종속성
-# Rheehose (Rhee Creative) 2008-2026
-
-pynput==1.7.6
-customtkinter==5.2.2
+customtkinter
+pynput
+pillow
+packaging

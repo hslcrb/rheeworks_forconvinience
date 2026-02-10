@@ -49,6 +49,15 @@
 - ✅ **Environment Isolation**: 도구별 독립 가상환경(`venv`) 관리 체계 확립 / Established independent venv management for each tool
 - ✅ **CI/CD Re-Sync**: 변경된 모노레포 구조에 맞춰 전체 빌드 파이프라인 동기화 완료 / Synchronized the entire build pipeline with the new structure
 
+### [RELEASE: v0.3.0] Bilingual Support Complete / 한영 병기 지원 완료
+
+**By Antigravity (Gemini) / Antigravity (Gemini)에 의해**
+
+- ✅ **Bilingual Implementation**: 8개 모든 도구(GUI/CLI)에 한영 병기 지원 및 자동 언어 감지 구현 완료 / Implemented bilingual support and auto-detection for all 8 tools
+- ✅ **UI/CLI Sync**: 모든 도구의 UI와 CLI 메시지 한영 병기화 / Synchronized UI and CLI messages in both Korean and English
+- ✅ **Documentation Update**: 프로젝트 전반의 문서를 한영 병기 일관성에 맞춰 업데이트 완료 / Updated all project documentation for bilingual consistency
+- ✅ **Tagging**: 30 커밋 기념 v0.3.0 공식 태깅 및 배포 / Officially tagged and deployed v0.3.0 for 30+ commits milestone
+
 ---
 
 **Rheehose (Rhee Creative) 2008-2026**

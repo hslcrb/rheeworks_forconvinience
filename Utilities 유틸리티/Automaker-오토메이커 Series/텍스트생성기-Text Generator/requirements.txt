@@ -1,4 +1,4 @@
-# Python Dependencies for Text Generator / 텍스트 생성기 파이썬 종속성
-# Rheehose (Rhee Creative) 2008-2026
-
-customtkinter==5.2.2
+customtkinter
+pyperclip
+pillow
+packaging
