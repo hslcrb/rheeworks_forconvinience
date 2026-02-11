@@ -90,7 +90,7 @@ UI_STRINGS = {
         "btn_draw": "화면 복구",
         "btn_lang": "한글",
         "prompt": "studyai>",
-        "banner_title": "StudyAI 터미널",
+        "banner_title": "StudyAI Terminal",
         "banner_sub": "파이썬 에디션 • Mistral AI",
         "banner_hint": "질문을 입력하고 엔터를 누르세요.",
         "banner_cmd": "명령어: /clear, /sclear, /draw, /trans, /help, /exit",
