@@ -91,7 +91,7 @@ UI_STRINGS = {
         "btn_lang": "한글",
         "prompt": "studyai>",
         "banner_title": "StudyAI Terminal",
-        "banner_sub": "파이썬 에디션 • Mistral AI",
+        "banner_sub": "Python Edition • Mistral AI",
         "banner_hint": "질문을 입력하고 엔터를 누르세요.",
         "banner_cmd": "명령어: /clear, /sclear, /draw, /trans, /help, /exit",
         "msg_sclear": "[SYSTEM] 세션 및 AI 기억이 초기화되었습니다.",
