@@ -661,7 +661,9 @@ class StudyAITerminal(QMainWindow):
         
         self.setup_ui()
         self.sync_language_state()
-        self.show_banner()
+        # show_banner is called inside sync_language_state if needed
+        # sync_language_state 내부에서 필요한 경우 show_banner가 호출됨
+
     
     def setup_ui(self):
         """Setup the terminal UI / 터미널 UI 설정"""
@@ -883,18 +885,30 @@ class StudyAITerminal(QMainWindow):
         strs = UI_STRINGS[self.ui_lang]
         greeting = random.choice(GREETINGS[self.ui_lang])
         
-        # Use 48 units width box / 48칸 너비 박스 사용
+        # Inner width 48 -> Total width 50
         BOX_W = 48
         title = strs["banner_title"]
         subtitle = strs["banner_sub"]
         
+        # Border color #6aff6a (Green)
         self.append_text("╔" + "═" * BOX_W + "╗\n", "#6aff6a")
-        self.append_text("║" + _center_text(title, BOX_W) + "║\n", "#6aff6a")
-        self.append_text("║" + _center_text(subtitle, BOX_W) + "║\n", "#888888")
+        
+        # Title line
+        self.append_text("║", "#6aff6a")
+        self.append_text(_center_text(title, BOX_W), "#ffffff")
+        self.append_text("║\n", "#6aff6a")
+        
+        # Subtitle line
+        self.append_text("║", "#6aff6a")
+        self.append_text(_center_text(subtitle, BOX_W), "#888888")
+        self.append_text("║\n", "#6aff6a")
+        
         self.append_text("╚" + "═" * BOX_W + "╝\n", "#6aff6a")
+        
         self.append_text(f"\n  {greeting}\n", "#aaaaaa")
         self.append_text(f"  {strs['banner_hint']}\n", "#666666")
         self.append_text(f"  {strs['banner_cmd']}\n\n", "#666666")
+
 
     
     def on_enter(self):
