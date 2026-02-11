@@ -17,6 +17,10 @@ import requests
 import time
 import locale
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Load API keys from .env / .env에서 API 키 로드
+load_dotenv()
 
 
 def setup_input_method():
@@ -48,11 +52,32 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, Signal, QObject, QTimer
 from PySide6.QtGui import QFont, QTextCursor, QColor, QPalette, QKeyEvent
 
-# API Configuration / API 설정
-MISTRAL_API_KEY = "OBfwuYKEEUFvjh5bLt18XOcVIpTYFHVQ"
+# Mistral API Configuration / Mistral API 설정
+MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY", "")
 MISTRAL_API_URL = "https://api.mistral.ai/v1/chat/completions"
-MODEL_NAME = "mistral-small-latest"
-MAX_TOKENS = 32000  # Mistral Small context limit / Mistral Small 컨텍스트 제한
+
+# OpenAI API Configuration / OpenAI API 설정
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+
+# Google Gemini API Configuration / Google Gemini API 설정
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+
+# Default Model / 기본 모델
+DEFAULT_MODEL = "mistral-small-latest"
+MAX_TOKENS = 32000
+
+# Available Models / 사용 가능한 모델
+AVAILABLE_MODELS = {
+    "mistral-small-latest": "mistral",
+    "mistral-medium-latest": "mistral",
+    "gpt-4o": "openai",
+    "gpt-4o-mini": "openai",
+    "gpt-4-turbo": "openai",
+    "gpt-4": "openai",
+    "gpt-3.5-turbo": "openai",
+    "gpt-5-nano": "openai-beta", # Use special responses API / 특수 응답 API 사용
+    "gemini-2.0-flash": "google"
+}
 
 # Random greeting phrases / 랜덤 인사말 문구
 GREETINGS = {
@@ -91,9 +116,9 @@ UI_STRINGS = {
         "btn_lang_target": "English",
         "prompt": "studyai>",
         "banner_title": "StudyAI Terminal",
-        "banner_sub": "파이썬 에디션 • Mistral AI",
+        "banner_sub": "파이썬 에디션",
         "banner_hint": "질문을 입력하고 엔터를 누르세요.",
-        "banner_cmd": "명령어: /clear, /sclear, /draw, /trans, /help, /exit",
+        "banner_cmd": "명령어: /clear, /sclear, /model, /draw, /trans, /help, /exit",
         "msg_sclear": "[SYSTEM] 세션 및 AI 기억이 초기화되었습니다.",
         "msg_clear": "[SYSTEM] 화면이 지워졌습니다. (기억 유지됨)",
         "msg_draw": "[SYSTEM] 화면이 복구되었습니다.",
@@ -108,9 +133,9 @@ UI_STRINGS = {
         "btn_lang_target": "한글",
         "prompt": "studyai>",
         "banner_title": "StudyAI Terminal",
-        "banner_sub": "Python Edition • Mistral AI",
+        "banner_sub": "Python Edition",
         "banner_hint": "Type your question and press Enter.",
-        "banner_cmd": "Commands: /clear, /sclear, /draw, /trans, /help, /exit",
+        "banner_cmd": "Commands: /clear, /sclear, /model, /draw, /trans, /help, /exit",
         "msg_sclear": "[SYSTEM] Session and memory cleared.",
         "msg_clear": "[SYSTEM] Screen cleared. (AI still remembers)",
         "msg_draw": "[SYSTEM] Screen restored.",
@@ -641,6 +666,7 @@ class StudyAITerminal(QMainWindow):
         self.dot_count = 0
         self.dot_timer = None
         self.last_screen_html = "" # For /draw restore
+        self.current_model = DEFAULT_MODEL
         
         # UI language based on locale / 로캘 기반 UI 언어
         try:
@@ -890,7 +916,8 @@ class StudyAITerminal(QMainWindow):
         
         # Logo remains English, but subtitle translates / 로고는 영어로 유지되지만 부제목은 번역됨
         title = "StudyAI Terminal"
-        subtitle = strs["banner_sub"]
+        provider_name = AVAILABLE_MODELS.get(self.current_model, "mistral").title()
+        subtitle = f"{strs['banner_sub']} • {provider_name} ({self.current_model})"
         
         # HTML Banner Box / HTML 배너 박스
         banner_html = f"""
@@ -1044,6 +1071,19 @@ class StudyAITerminal(QMainWindow):
             self.append_text("  /clear   - Clear screen & history / 화면 및 기록 초기화\n", "#aaaaaa")
             self.append_text("  /help    - Show this help / 도움말 표시\n", "#aaaaaa")
             self.append_text("  /exit    - Exit application / 종료\n\n", "#aaaaaa")
+        elif cmd.startswith("/model"):
+            parts = cmd.split(" ", 1)
+            if len(parts) > 1:
+                target_model = parts[1].strip()
+                if target_model in AVAILABLE_MODELS:
+                    self.current_model = target_model
+                    self.append_text(f"\n[SYSTEM] Model switched to: {self.current_model}\n", "#569cd6")
+                else:
+                    self.append_text(f"\n[SYSTEM] Unknown model. Available: {', '.join(AVAILABLE_MODELS.keys())}\n", "#ff6a6a")
+            else:
+                self.append_text(f"\n[SYSTEM] Current model: {self.current_model}\n", "#aaaaaa")
+                self.append_text(f"  Available: {', '.join(AVAILABLE_MODELS.keys())}\n", "#aaaaaa")
+                self.append_text("  Usage: /model <model_name>\n", "#aaaaaa")
         elif cmd == "/exit":
             QApplication.quit()
         else:
@@ -1051,48 +1091,126 @@ class StudyAITerminal(QMainWindow):
     
     def api_call(self, user_input):
         """Make API call in background thread / 백그라운드 스레드에서 API 호출"""
+        provider = AVAILABLE_MODELS.get(self.current_model, "mistral")
+        
         try:
             messages = [{"role": "system", "content": SYSTEM_PROMPT}]
             messages.extend(self.conversation_history)
             
-            payload = {
-                "model": MODEL_NAME,
-                "messages": messages,
-                "stream": True
-            }
-            
-            headers = {
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {MISTRAL_API_KEY}"
-            }
-            
-            response = requests.post(
-                MISTRAL_API_URL,
-                json=payload,
-                headers=headers,
-                stream=True,
-                timeout=60
-            )
-            response.raise_for_status()
-            
-            for line in response.iter_lines():
-                if line:
-                    line = line.decode("utf-8")
-                    if line.startswith("data: "):
-                        data = line[6:]
-                        if data == "[DONE]":
-                            break
-                        try:
-                            parsed = json.loads(data)
-                            choices = parsed.get("choices", [])
-                            if choices:
-                                delta = choices[0].get("delta", {})
-                                content = delta.get("content", "")
-                                if content:
-                                    self.signals.chunk_received.emit(content)
-                        except json.JSONDecodeError:
-                            pass
-            
+            if provider == "mistral":
+                payload = {
+                    "model": self.current_model,
+                    "messages": messages,
+                    "stream": True
+                }
+                headers = {
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {MISTRAL_API_KEY}"
+                }
+                response = requests.post(
+                    MISTRAL_API_URL, json=payload, headers=headers,
+                    stream=True, timeout=60
+                )
+                response.raise_for_status()
+                
+                for line in response.iter_lines():
+                    if line:
+                        line = line.decode("utf-8")
+                        if line.startswith("data: "):
+                            data = line[6:]
+                            if data == "[DONE]": break
+                            try:
+                                parsed = json.loads(data)
+                                choices = parsed.get("choices", [])
+                                if choices:
+                                    content = choices[0].get("delta", {}).get("content", "")
+                                    if content: self.signals.chunk_received.emit(content)
+                            except: pass
+                            
+            elif provider == "openai":
+                # Standard OpenAI Chat Completions using requests (to keep streaming logic similar)
+                # 요청을 사용한 표준 OpenAI 채팅 완료 (스트리밍 로직을 유사하게 유지)
+                payload = {
+                    "model": self.current_model,
+                    "messages": messages,
+                    "stream": True
+                }
+                headers = {
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {OPENAI_API_KEY}"
+                }
+                response = requests.post(
+                    "https://api.openai.com/v1/chat/completions",
+                    json=payload, headers=headers, stream=True, timeout=60
+                )
+                response.raise_for_status()
+                
+                for line in response.iter_lines():
+                    if line:
+                        line = line.decode("utf-8")
+                        if line.startswith("data: "):
+                            data = line[6:]
+                            if data == "[DONE]": break
+                            try:
+                                parsed = json.loads(data)
+                                choices = parsed.get("choices", [])
+                                if choices:
+                                    content = choices[0].get("delta", {}).get("content", "")
+                                    if content: self.signals.chunk_received.emit(content)
+                            except: pass
+
+            elif provider == "openai-beta":
+                # Special GPT-5-NANO implementation using the user's provided snippet
+                # 사용자가 제공한 스니펫을 사용한 특수 GPT-5-NANO 구현
+                try:
+                    from openai import OpenAI
+                    client = OpenAI(api_key=OPENAI_API_KEY)
+                    
+                    # Note: User provided 'responses.create' which is non-standard but requested
+                    # 'responses.create'는 비표준이지만 요청된 것임
+                    response = client.responses.create(
+                        model=self.current_model,
+                        input=user_input, # Snippet use 'input' not 'messages'
+                        store=True,
+                    )
+                    # Snippet uses 'output_text'
+                    if hasattr(response, 'output_text'):
+                        self.signals.chunk_received.emit(response.output_text)
+                    else:
+                        # Fallback if the experimental API returns standard format
+                        self.signals.chunk_received.emit(str(response))
+                        
+                except Exception as e:
+                    self.signals.stream_error.emit(f"OpenAI Library Error: {str(e)}")
+                    return
+
+            elif provider == "google":
+                # Google Gemini Implementation / Google Gemini 구현
+                try:
+                    import google.generativeai as genai
+                    genai.configure(api_key=GEMINI_API_KEY)
+                    model = genai.GenerativeModel(self.current_model)
+                    
+                    # Map messages to Google format / 구글 형식으로 메시지 매핑
+                    # Mistral: role: system/user/assistant
+                    # Gemini: role: user/model, system_instruction is separate
+                    google_messages = []
+                    for msg in self.conversation_history:
+                        role = "user" if msg["role"] == "user" else "model"
+                        google_messages.append({"role": role, "parts": [msg["content"]]})
+                    
+                    # Start chat with history / 기록과 함께 채팅 시작
+                    chat = model.start_chat(history=google_messages)
+                    response = chat.send_message(user_input, stream=True)
+                    
+                    for chunk in response:
+                        if chunk.text:
+                            self.signals.chunk_received.emit(chunk.text)
+                            
+                except Exception as e:
+                    self.signals.stream_error.emit(f"Gemini Error: {str(e)}")
+                    return
+
             self.signals.stream_finished.emit()
             
         except Exception as e:
