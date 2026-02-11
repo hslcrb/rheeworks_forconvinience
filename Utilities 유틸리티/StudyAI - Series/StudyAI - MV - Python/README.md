@@ -13,8 +13,19 @@ A PySide6-based terminal-style AI chat application.
 
 ## 🚀 실행 방법 / How to Run
 
+가장 간단한 실행 방법은 제공된 쉘 스크립트를 사용하는 것입니다:
+The simplest way to run is by using the provided shell script:
+
 ```bash
-# 가상환경 생성 / Create virtual environment
+chmod +x run_gui.sh
+./run_gui.sh
+```
+
+또는 수동으로 가상환경을 설정하여 실행할 수 있습니다:
+Or you can manually setup the virtual environment:
+
+```bash
+# 가상환경 생성 및 활성화 / Create and activate venv
 python3 -m venv venv
 source venv/bin/activate
 

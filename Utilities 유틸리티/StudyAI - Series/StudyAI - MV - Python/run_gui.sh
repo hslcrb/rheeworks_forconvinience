@@ -13,16 +13,6 @@ export XMODIFIERS=""
 
 # 가상환경 확인 및 생성 / Check and create virtual environment
 if [ ! -d "venv" ]; then
-    python3 -m venv venv
-    source venv/lib/python3.12/bin/activate
-    pip install -r requirements.txt
-else
-    source venv/bin/activate
-fi
-
-
-# 가상환경 확인 및 생성 / Check and create virtual environment
-if [ ! -d "venv" ]; then
     echo "가상환경 생성 중... / Creating virtual environment..."
     python3 -m venv venv
 fi

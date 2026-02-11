@@ -71,9 +71,9 @@ const char *greetings[] = {
 #define NUM_GREETINGS 50
 
 // API Configuration
-#define MISTRAL_API_KEY "OBfwuYKEEUFvjh5bLt18XOcVIpTYFHVQ"
-#define MISTRAL_API_URL "https://api.mistral.ai/v1/chat/completions"
-#define MODEL_NAME "mistral-small-latest"
+#define MISTRAL_API_URL "https://www.rheehose.com" "/api/ai/v1/juni/mistral/relay"
+#define GEMINI_API_URL "https://www.rheehose.com" "/api/ai/v1/juni/gemini/relay"
+#define MODEL_NAME "mistral-tiny"
 
 
 // UI Widgets
@@ -84,6 +84,9 @@ GtkWidget *prompt_entry;
 GtkWidget *scrolled_window;
 GtkWidget *current_bot_label = NULL;
 GString *current_bot_text = NULL;
+GtkWidget *model_btn;
+
+int current_model = 0; // 0: Mistral, 1: Gemini
 
 int is_dark_mode = 0;
 volatile int is_streaming = 0;
@@ -503,53 +506,94 @@ void *api_thread_func(void *data) {
     
     if(curl) {
         cJSON *root = cJSON_CreateObject();
-        cJSON_AddStringToObject(root, "model", MODEL_NAME);
-        cJSON_AddBoolToObject(root, "stream", cJSON_True);
-        cJSON *messages = cJSON_CreateArray();
         
-        // Add system message
-        cJSON *system_msg = cJSON_CreateObject();
-        cJSON_AddStringToObject(system_msg, "role", "system");
-        cJSON_AddStringToObject(system_msg, "content", 
-            "You are StudyAI, a smart study assistant. "
-            "Adapt your response length to the question: "
-            "- Simple/greeting questions: 1-2 sentences. "
-            "- Factual questions: 1 short paragraph. "
-            "- Explanations/how-to: concise but thorough, use bullet points. "
-            "- Code requests: provide clean, commented code with brief explanation. "
-            "- Deep analysis: comprehensive but well-structured with headers. "
-            "Use markdown: ### headers, **bold**, `code`, ```code blocks```, lists. "
-            "Never pad responses unnecessarily. Be precise and useful.");
-        cJSON_AddItemToArray(messages, system_msg);
-        
-        // Add conversation history
-        for (int i = 0; i < message_count; i++) {
-            cJSON *hist_msg = cJSON_CreateObject();
-            cJSON_AddStringToObject(hist_msg, "role", conversation_history[i].role);
-            cJSON_AddStringToObject(hist_msg, "content", conversation_history[i].content);
-            cJSON_AddItemToArray(messages, hist_msg);
+        if (current_model == 0) {
+            // --- Mistral Payload ---
+            cJSON_AddStringToObject(root, "model", MODEL_NAME);
+            cJSON_AddBoolToObject(root, "stream", cJSON_True);
+            cJSON *messages = cJSON_CreateArray();
+            
+            // Add system message
+            cJSON *system_msg = cJSON_CreateObject();
+            cJSON_AddStringToObject(system_msg, "role", "system");
+            cJSON_AddStringToObject(system_msg, "content", 
+                "You are StudyAI, a smart study assistant. "
+                "Adapt your response length to the question: "
+                "- Simple/greeting questions: 1-2 sentences. "
+                "- Factual questions: 1 short paragraph. "
+                "- Explanations/how-to: concise but thorough, use bullet points. "
+                "- Code requests: provide clean, commented code with brief explanation. "
+                "- Deep analysis: comprehensive but well-structured with headers. "
+                "Use markdown: ### headers, **bold**, `code`, ```code blocks```, lists. "
+                "Never pad responses unnecessarily. Be precise and useful.");
+            cJSON_AddItemToArray(messages, system_msg);
+            
+            // Add conversation history
+            for (int i = 0; i < message_count; i++) {
+                cJSON *hist_msg = cJSON_CreateObject();
+                cJSON_AddStringToObject(hist_msg, "role", conversation_history[i].role);
+                cJSON_AddStringToObject(hist_msg, "content", conversation_history[i].content);
+                cJSON_AddItemToArray(messages, hist_msg);
+            }
+            
+            // Add current user message
+            cJSON *user_msg = cJSON_CreateObject();
+            cJSON_AddStringToObject(user_msg, "role", "user");
+            cJSON_AddStringToObject(user_msg, "content", tdata->user_input);
+            cJSON_AddItemToArray(messages, user_msg);
+            
+            cJSON_AddItemToObject(root, "messages", messages);
+            
+            curl_easy_setopt(curl, CURLOPT_URL, MISTRAL_API_URL);
+
+        } else {
+            // --- Gemini Payload ---
+            // Structure: { "contents": [ { "role": "user", "parts": [ { "text": "..." } ] } ] }
+            cJSON *contents = cJSON_CreateArray();
+            
+            // Add conversation history + current message
+            // Note: Gemini roles are 'user' and 'model'. System prompt is usually prepended to first user message or separate
+            // For simplicity here, we append system prompt instructions to the current user message context if it's the first turn,
+            // or just rely on the model's inherent capabilities.
+            
+            for (int i = 0; i < message_count; i++) {
+                cJSON *msg_obj = cJSON_CreateObject();
+                cJSON_AddStringToObject(msg_obj, "role", strcmp(conversation_history[i].role, "user") == 0 ? "user" : "model");
+                
+                cJSON *parts = cJSON_CreateArray();
+                cJSON *part = cJSON_CreateObject();
+                cJSON_AddStringToObject(part, "text", conversation_history[i].content);
+                cJSON_AddItemToArray(parts, part);
+                
+                cJSON_AddItemToObject(msg_obj, "parts", parts);
+                cJSON_AddItemToArray(contents, msg_obj);
+            }
+            
+            // Current User Message
+            cJSON *curr_msg = cJSON_CreateObject();
+            cJSON_AddStringToObject(curr_msg, "role", "user");
+            cJSON *parts = cJSON_CreateArray();
+            cJSON *part = cJSON_CreateObject();
+            cJSON_AddStringToObject(part, "text", tdata->user_input);
+            cJSON_AddItemToArray(parts, part);
+            cJSON_AddItemToObject(curr_msg, "parts", parts);
+            cJSON_AddItemToArray(contents, curr_msg);
+            
+            cJSON_AddItemToObject(root, "contents", contents);
+            
+            curl_easy_setopt(curl, CURLOPT_URL, GEMINI_API_URL);
         }
-        
-        // Add current user message
-        cJSON *user_msg = cJSON_CreateObject();
-        cJSON_AddStringToObject(user_msg, "role", "user");
-        cJSON_AddStringToObject(user_msg, "content", tdata->user_input);
-        cJSON_AddItemToArray(messages, user_msg);
-        
-        cJSON_AddItemToObject(root, "messages", messages);
         
         char *json_str = cJSON_PrintUnformatted(root);
         
         struct curl_slist *headers = NULL;
         headers = curl_slist_append(headers, "Content-Type: application/json");
-        char auth_header[256];
-        snprintf(auth_header, sizeof(auth_header), "Authorization: Bearer %s", MISTRAL_API_KEY);
-        headers = curl_slist_append(headers, auth_header);
 
-        curl_easy_setopt(curl, CURLOPT_URL, MISTRAL_API_URL);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_str);
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, StreamCallback);
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
         
         curl_easy_perform(curl);
         
@@ -664,6 +708,17 @@ void set_theme(int dark) {
     g_object_unref(provider);
 }
 
+void on_toggle_model(GtkWidget *widget, gpointer data) {
+    current_model = !current_model;
+    if (current_model == 0) {
+        gtk_button_set_label(GTK_BUTTON(widget), "Mistral");
+        gtk_widget_set_tooltip_text(widget, "Switch to Gemini");
+    } else {
+        gtk_button_set_label(GTK_BUTTON(widget), "Gemini");
+        gtk_widget_set_tooltip_text(widget, "Switch to Mistral");
+    }
+}
+
 void on_toggle_theme(GtkWidget *widget, gpointer data) {
     is_dark_mode = !is_dark_mode;
     set_theme(is_dark_mode);
@@ -702,6 +757,11 @@ int main(int argc, char *argv[]) {
     gtk_header_bar_set_title(GTK_HEADER_BAR(header), "StudyAI");
     gtk_header_bar_set_subtitle(GTK_HEADER_BAR(header), "Powered by Mistral AI");
     gtk_window_set_titlebar(GTK_WINDOW(main_window), header);
+
+    model_btn = gtk_button_new_with_label("Mistral");
+    gtk_widget_set_tooltip_text(model_btn, "Switch to Gemini");
+    g_signal_connect(model_btn, "clicked", G_CALLBACK(on_toggle_model), NULL);
+    gtk_header_bar_pack_start(GTK_HEADER_BAR(header), model_btn);
 
     GtkWidget *theme_btn = gtk_button_new_with_label("🌙");
     gtk_widget_set_tooltip_text(theme_btn, "Toggle Theme");

@@ -17,10 +17,6 @@ import requests
 import time
 import locale
 from datetime import datetime
-from dotenv import load_dotenv
-
-# Load API keys from .env / .env에서 API 키 로드
-load_dotenv()
 
 
 def setup_input_method():
@@ -47,36 +43,77 @@ setup_input_method()
 
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout,
-    QTextEdit, QLineEdit, QLabel, QHBoxLayout, QPushButton
+    QTextEdit, QLineEdit, QLabel, QHBoxLayout, QPushButton, QComboBox
 )
 from PySide6.QtCore import Qt, Signal, QObject, QTimer
 from PySide6.QtGui import QFont, QTextCursor, QColor, QPalette, QKeyEvent
 
 # Mistral API Configuration / Mistral API 설정
-MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY", "")
-MISTRAL_API_URL = "https://api.mistral.ai/v1/chat/completions"
-
-# OpenAI API Configuration / OpenAI API 설정
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+MISTRAL_API_URL = "https://www.rheehose.com" + "/api/ai/v1/juni/mistral/relay"
 
 # Google Gemini API Configuration / Google Gemini API 설정
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_API_URL = "https://www.rheehose.com" + "/api/ai/v1/juni/gemini/relay"
 
 # Default Model / 기본 모델
-DEFAULT_MODEL = "mistral-small-latest"
+DEFAULT_MODEL = "mistral-tiny"
 MAX_TOKENS = 32000
 
 # Available Models / 사용 가능한 모델
 AVAILABLE_MODELS = {
     "mistral-small-latest": "mistral",
     "mistral-medium-latest": "mistral",
-    "gpt-4o": "openai",
-    "gpt-4o-mini": "openai",
-    "gpt-4-turbo": "openai",
-    "gpt-4": "openai",
-    "gpt-3.5-turbo": "openai",
-    "gpt-5-nano": "openai-beta", # Use special responses API / 특수 응답 API 사용
-    "gemini-2.0-flash": "google"
+    "gemini-2.0-flash": "google",
+    "gemini-3-flash-preview": "google"
+}
+
+# Theme Definitions / 테마 정의
+THEMES = {
+    "dark": {
+        "bg": "#1a1a1a",
+        "fg": "#d4d4d4",
+        "input_bg": "#1a1a1a",
+        "input_fg": "#ffffff",
+        "footer_bg": "#1a1a1a",
+        "btn_bg": "#333333",
+        "btn_fg": "#cccccc",
+        "btn_hover": "#444444",
+        "prompt_fg": "#6aff6a",
+        "context_fg": "#666666",
+        "selection_bg": "#ff6a6a",
+        "selection_fg": "#000000",
+        "bold_fg": "#ffffff",
+        "code_bg": "#2a2a2a",
+        "code_fg": "#9cdcfe",
+        "code_block_bg": "#2a2a2a",
+        "code_block_border": "#6aff6a",
+        "code_block_fg": "#c8c8c8"
+    },
+    "light": {
+        "bg": "#f8f0ff", # Light Lavender / 연보라
+        "fg": "#2d005d", # Dark Purple / 어두운 보라
+        "input_bg": "#ffffff",
+        "input_fg": "#000000",
+        "footer_bg": "#efe0ff",
+        "btn_bg": "#daafff",
+        "btn_fg": "#4a148c",
+        "btn_hover": "#c17fff",
+        "prompt_fg": "#2e7d32",
+        "context_fg": "#7e57c2",
+        "selection_bg": "#b39ddb",
+        "selection_fg": "#ffffff",
+        "bold_fg": "#2d005d", # Match theme fg / 테마 fg와 일치
+        "code_bg": "#e1bee7",
+        "code_fg": "#4a148c",
+        "code_block_bg": "#f3e5f5",
+        "code_block_border": "#b39ddb",
+        "code_block_fg": "#4a148c"
+    }
+}
+
+# Simplified model groups for commands and dropdown / 명령 및 드롭다운을 위한 간소화된 모델 그룹
+MODEL_GROUPS = {
+    "Mistral": "mistral-small-latest",
+    "Gemini": "gemini-3-flash-preview"
 }
 
 # Random greeting phrases / 랜덤 인사말 문구
@@ -182,11 +219,12 @@ class StreamSignals(QObject):
     stream_error = Signal(str)
 
 
-def markdown_to_html(text):
+def markdown_to_html(text, theme_name="dark"):
     """
     마크다운을 HTML로 변환 (터미널 스타일) / Convert markdown to HTML (terminal style).
     Supports: **bold**, *italic*, `inline code`, ```code blocks```, ### headers, - bullet lists.
     """
+    t = THEMES[theme_name]
     import re
     lines = text.split("\n")
     html_parts = []
@@ -201,9 +239,9 @@ def markdown_to_html(text):
                 code_text = "\n".join(code_block_content)
                 code_text = code_text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
                 html_parts.append(
-                    f'<div style="background-color:#2a2a2a; padding:6px 10px; margin:4px 0; '
-                    f'border-left:3px solid #6aff6a; font-family:Monospace;">'
-                    f'<pre style="margin:0; color:#c8c8c8;">{code_text}</pre></div>'
+                    f'<div style="background-color:{t["code_block_bg"]}; padding:6px 10px; margin:4px 0; '
+                    f'border-left:3px solid {t["code_block_border"]}; font-family:Monospace;">'
+                    f'<pre style="margin:0; color:{t["code_block_fg"]};">{code_text}</pre></div>'
                 )
                 code_block_content = []
                 in_code_block = False
@@ -219,25 +257,25 @@ def markdown_to_html(text):
         line = line.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
         
         # Headers / 헤더 (### > ## > #)
-        header_match = re.match(r'^(#{1,3})\s+(.*)', line)
+        header_match = re.match(r'^(#{1,3})\s*(.*)', line)
         if header_match:
             level = len(header_match.group(1))
             header_text = header_match.group(2)
             # Apply inline formatting to header text / 헤더 텍스트에 인라인 서식 적용
-            header_text = _apply_inline_md(header_text)
+            header_text = _apply_inline_md(header_text, theme_name)
             if level == 1:
-                html_parts.append(f'<p style="color:#ffffff; font-weight:bold; font-size:15px; margin:6px 0;">{header_text}</p>')
+                html_parts.append(f'<p style="color:{t["bold_fg"]}; font-weight:bold; font-size:15px; margin:6px 0;">{header_text}</p>')
             elif level == 2:
-                html_parts.append(f'<p style="color:#e0e0e0; font-weight:bold; font-size:14px; margin:4px 0;">{header_text}</p>')
+                html_parts.append(f'<p style="color:{t["prompt_fg"]}; font-weight:bold; font-size:14px; margin:4px 0;">{header_text}</p>')
             else:
-                html_parts.append(f'<p style="color:#cccccc; font-weight:bold; margin:3px 0;">{header_text}</p>')
+                html_parts.append(f'<p style="color:{t["prompt_fg"]}; font-weight:bold; margin:3px 0;">{header_text}</p>')
             continue
         
         # Bullet lists / 불릿 목록
         bullet_match = re.match(r'^(\s*)[-*]\s+(.*)', line)
         if bullet_match:
             indent = len(bullet_match.group(1))
-            item_text = _apply_inline_md(bullet_match.group(2))
+            item_text = _apply_inline_md(bullet_match.group(2), theme_name)
             pad = "&nbsp;" * (indent + 2)
             html_parts.append(f'<p style="margin:1px 0;">{pad}• {item_text}</p>')
             continue
@@ -246,14 +284,14 @@ def markdown_to_html(text):
         num_match = re.match(r'^(\s*)\d+[.)]\s+(.*)', line)
         if num_match:
             indent = len(num_match.group(1))
-            item_text = _apply_inline_md(num_match.group(2))
+            item_text = _apply_inline_md(num_match.group(2), theme_name)
             pad = "&nbsp;" * (indent + 2)
             html_parts.append(f'<p style="margin:1px 0;">{pad}▸ {item_text}</p>')
             continue
         
         # Regular text with inline formatting / 인라인 서식이 있는 일반 텍스트
         if line.strip():
-            html_parts.append(f'<p style="margin:1px 0;">{_apply_inline_md(line)}</p>')
+            html_parts.append(f'<p style="margin:1px 0;">{_apply_inline_md(line, theme_name)}</p>')
         else:
             html_parts.append('<p style="margin:2px 0;">&nbsp;</p>')
     
@@ -262,9 +300,9 @@ def markdown_to_html(text):
         code_text = "\n".join(code_block_content)
         code_text = code_text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
         html_parts.append(
-            f'<div style="background-color:#2a2a2a; padding:6px 10px; margin:4px 0; '
-            f'border-left:3px solid #6aff6a; font-family:Monospace;">'
-            f'<pre style="margin:0; color:#c8c8c8;">{code_text}</pre></div>'
+            f'<div style="background-color:{t["code_block_bg"]}; padding:6px 10px; margin:4px 0; '
+            f'border-left:3px solid {t["code_block_border"]}; font-family:Monospace;">'
+            f'<pre style="margin:0; color:{t["code_block_fg"]};">{code_text}</pre></div>'
         )
     
     return "".join(html_parts)
@@ -303,9 +341,10 @@ class HangulAutomata:
 
     # Complex Jamo Combination / 복합 자모 조합
     COMPLEX_JUNG = {
+        ('ㅏ', 'ㅣ'): 'ㅐ', ('ㅑ', 'ㅣ'): 'ㅒ', ('ㅓ', 'ㅣ'): 'ㅔ', ('ㅕ', 'ㅣ'): 'ㅖ',
         ('ㅗ', 'ㅏ'): 'ㅘ', ('ㅗ', 'ㅐ'): 'ㅙ', ('ㅗ', 'ㅣ'): 'ㅚ',
         ('ㅜ', 'ㅓ'): 'ㅝ', ('ㅜ', 'ㅔ'): 'ㅞ', ('ㅜ', 'ㅣ'): 'ㅟ',
-        ('ㅡ', 'ㅣ'): 'ㅢ'
+        ('ㅡ', 'ㅣ'): 'ㅢ', ('ㅘ', 'ㅣ'): 'ㅙ', ('ㅝ', 'ㅣ'): 'ㅞ'
     }
     COMPLEX_JONG = {
         ('ㄱ', 'ㅅ'): 'ㄳ', ('ㄴ', 'ㅈ'): 'ㄵ', ('ㄴ', 'ㅎ'): 'ㄶ',
@@ -323,6 +362,7 @@ class HangulAutomata:
         self.cho = -1
         self.jung = -1
         self.jong = -1
+        self.jong_is_combined = False
         self.buffer = ""
 
     def decompose(self, char):
@@ -393,12 +433,37 @@ class HangulAutomata:
 
     def process_key(self, key):
         """Processes a char key, returns (committed, current_composition)"""
-        # Mapping from QWERTY or direct Jamo input
-        # QWERTY 또는 직접 입력된 자모 매핑
+        # Normalize Syllable Jamos to Compatibility Jamos / 첫/가/끝 자모를 호환용 자모로 정규화
+        j_map = {
+            0x1100: 'ㄱ', 0x1101: 'ㄲ', 0x1102: 'ㄴ', 0x1103: 'ㄷ', 0x1104: 'ㄸ', 0x1105: 'ㄹ',
+            0x1106: 'ㅁ', 0x1107: 'ㅂ', 0x1108: 'ㅃ', 0x1109: 'ㅅ', 0x110A: 'ㅆ', 0x110B: 'ㅇ',
+            0x110C: 'ㅈ', 0x110D: 'ㅉ', 0x110E: 'ㅊ', 0x110F: 'ㅋ', 0x1110: 'ㅌ', 0x1111: 'ㅍ', 0x1112: 'ㅎ',
+            0x1161: 'ㅏ', 0x1162: 'ㅐ', 0x1163: 'ㅑ', 0x1164: 'ㅒ', 0x1165: 'ㅓ', 0x1166: 'ㅔ',
+            0x1167: 'ㅕ', 0x1168: 'ㅖ', 0x1169: 'ㅗ', 0x116A: 'ㅘ', 0x116B: 'ㅙ', 0x116C: 'ㅚ',
+            0x116D: 'ㅛ', 0x116E: 'ㅜ', 0x116F: 'ㅝ', 0x1170: 'ㅞ', 0x1171: 'ㅟ', 0x1172: 'ㅠ',
+            0x1173: 'ㅡ', 0x1174: 'ㅢ', 0x1175: 'ㅣ',
+            0x11A8: 'ㄱ', 0x11A9: 'ㄲ', 0x11AA: 'ㄳ', 0x11AB: 'ㄴ', 0x11AC: 'ㄵ', 0x11AD: 'ㄶ',
+            0x11AE: 'ㄷ', 0x11AF: 'ㄹ', 0x11B0: 'ㄺ', 0x11B1: 'ㄻ', 0x11B2: 'ㄼ', 0x11B3: 'ㄽ',
+            0x11B4: 'ㄾ', 0x11B5: 'ㄿ', 0x11B6: 'ㅀ', 0x11B7: 'ㅁ', 0x11B8: 'ㅂ', 0x11B9: 'ㅄ',
+            0x11BA: 'ㅅ', 0x11BB: 'ㅆ', 0x11BC: 'ㅇ', 0x11BD: 'ㅈ', 0x11BE: 'ㅊ', 0x11BF: 'ㅋ',
+            0x11C0: 'ㅌ', 0x11C1: 'ㅍ', 0x11C2: 'ㅎ'
+        }
+        if ord(key) in j_map:
+            key = j_map[ord(key)]
+
+        # Mapping from QWERTY or direct Jamo input (Normalize to Compatibility Jamo)
+        # QWERTY 또는 직접 입력 자모 매핑 (호환용 자모로 정규화)
+        jamo_norm = {
+            'ㅃ': 'ㅃ', 'ㅉ': 'ㅉ', 'ㄸ': 'ㄸ', 'ㄲ': 'ㄲ', 'ㅆ': 'ㅆ',
+            'ㅐ': 'ㅐ', 'ㅒ': 'ㅒ', 'ㅔ': 'ㅔ', 'ㅖ': 'ㅖ', 'ㅘ': 'ㅘ', 'ㅙ': 'ㅙ', 'ㅚ': 'ㅚ',
+            'ㅝ': 'ㅝ', 'ㅞ': 'ㅞ', 'ㅟ': 'ㅟ', 'ㅢ': 'ㅢ'
+        }
         if key in self.MAP:
             jamo = self.MAP[key]
         elif key in self.CHO or key in self.JUNG or key in self.JONG:
             jamo = key
+        elif key in jamo_norm:
+            jamo = jamo_norm[key]
         else:
             committed = self.combine()
             self.reset()
@@ -435,6 +500,7 @@ class HangulAutomata:
             # Start Jong / 종성 시작
             if jamo in self.JONG:
                 self.jong = self.JONG.index(jamo)
+                self.jong_is_combined = False
                 return "", self.combine()
             
             # If jamo is not in JONG but is a valid CHO (like ㄸ, ㅃ, ㅉ), start new block
@@ -452,9 +518,22 @@ class HangulAutomata:
             # Shift Jong to become new Cho / 종성을 다음 글자 초성으로 이동 (연음)
             jong_char = self.JONG[self.jong]
             
+            # Smart shifting for double consonants / 쌍자음 지능형 연음
+            # If combined (ㄱ+ㄱ, ㅅ+ㅅ), split them (e.g., 국가)
+            # If single key (Shift+R, Shift+T), move as a whole (e.g., 닦아, 있어)
+            if jong_char in ['ㄲ', 'ㅆ'] and self.jong_is_combined:
+                # Fall through to COMPLEX_JONG split logic below
+                pass
+            elif jong_char in ['ㄲ', 'ㅆ']:
+                # Move as a whole / 통째로 이동
+                self.jong = 0 # No jong
+                prev = self.combine()
+                self.reset()
+                self.cho = self.CHO.index(jong_char)
+                self.jung = self.JUNG.index(jamo)
+                return prev, self.combine()
+
             # If complex jong, break it / 복합 종성 분해 (ㄺ -> ㄹ + ㄱ)
-            # Find if current jong is complex / 현재 종성이 복합 종성인지 확인
-            comp_found = False
             for (j1, j2), combined in self.COMPLEX_JONG.items():
                 if combined == jong_char:
                     # Keep j1 as jong, j2 becomes new cho
@@ -478,6 +557,7 @@ class HangulAutomata:
         if (cur_jong, jamo) in self.COMPLEX_JONG:
             new_jong = self.COMPLEX_JONG[(cur_jong, jamo)]
             self.jong = self.JONG.index(new_jong)
+            self.jong_is_combined = True
             return "", self.combine()
 
         # New block / 시러운 글자 시작
@@ -635,20 +715,21 @@ class HangulLineEdit(QLineEdit):
         event.ignore()
 
 
-def _apply_inline_md(text):
+def _apply_inline_md(text, theme_name="dark"):
     """
     인라인 마크다운 서식 적용 / Apply inline markdown formatting.
     Supports: **bold**, *italic*, `code`
     """
+    t = THEMES[theme_name]
     import re
     # Inline code / 인라인 코드: `text`
     text = re.sub(
         r'`([^`]+)`',
-        r'<span style="background-color:#2a2a2a; color:#9cdcfe; padding:1px 4px;">\1</span>',
+        f'<span style="background-color:{t["code_bg"]}; color:{t["code_fg"]}; padding:1px 4px;">\\1</span>',
         text
     )
     # Bold / 볼드: **text**
-    text = re.sub(r'\*\*([^*]+)\*\*', r'<b style="color:#ffffff;">\1</b>', text)
+    text = re.sub(r'\*\*([^*]+)\*\*', f'<b style="color:{t["bold_fg"]};">\\1</b>', text)
     # Italic / 이탤릭: *text*
     text = re.sub(r'\*([^*]+)\*', r'<i>\1</i>', text)
     return text
@@ -667,6 +748,7 @@ class StudyAITerminal(QMainWindow):
         self.dot_timer = None
         self.last_screen_html = "" # For /draw restore
         self.current_model = DEFAULT_MODEL
+        self.current_theme = "dark" # Initial theme / 초기 테마
         
         # UI language based on locale / 로캘 기반 UI 언어
         try:
@@ -704,20 +786,51 @@ class StudyAITerminal(QMainWindow):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         
+        # Header area (Theme Buttons) / 상단 영역 (테마 버튼)
+        header_layout = QHBoxLayout()
+        header_layout.setContentsMargins(10, 5, 12, 5)
+        header_layout.addStretch()
+        
+        theme_btn_style = """
+            QPushButton {
+                background-color: transparent;
+                color: #888888;
+                border: 1px solid #444444;
+                border-radius: 4px;
+                padding: 2px 8px;
+                font-family: Monospace;
+                font-size: 10px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #333333;
+                color: #ffffff;
+            }
+        """
+        
+        self.btn_theme_light = QPushButton("LIGHT")
+        self.btn_theme_light.setCursor(Qt.PointingHandCursor)
+        self.btn_theme_light.setStyleSheet(theme_btn_style)
+        self.btn_theme_light.clicked.connect(lambda: self.set_theme("light"))
+        
+        self.btn_theme_dark = QPushButton("DARK")
+        self.btn_theme_dark.setCursor(Qt.PointingHandCursor)
+        self.btn_theme_dark.setStyleSheet(theme_btn_style)
+        self.btn_theme_dark.clicked.connect(lambda: self.set_theme("dark"))
+        
+        header_layout.addWidget(self.btn_theme_light)
+        header_layout.addWidget(self.btn_theme_dark)
+        
+        header_container = QWidget()
+        header_container.setObjectName("header_container")
+        header_container.setLayout(header_layout)
+        layout.addWidget(header_container)
+        
         # Terminal output / 터미널 출력
         self.terminal = QTextEdit()
         self.terminal.setReadOnly(True)
         # Using a more robust font / 보다 견고한 폰트 사용
         self.terminal.setFont(QFont("DejaVu Sans Mono, monospace", 11))
-        self.terminal.setStyleSheet("""
-            QTextEdit {
-                background-color: #1a1a1a;
-                color: #d4d4d4;
-                border: none;
-                padding: 12px;
-                selection-background-color: #3a3a3a;
-            }
-        """)
         layout.addWidget(self.terminal)
         
         # Input area / 입력 영역
@@ -736,21 +849,12 @@ class StudyAITerminal(QMainWindow):
         self.input_field.mode_changed.connect(self.on_mode_changed)
         self.input_field.setFont(QFont("Monospace", 12))
 
-        self.input_field.setStyleSheet("""
-            QLineEdit {
-                background-color: #1a1a1a;
-                color: #ffffff;
-                border: none;
-                padding: 4px;
-            }
-        """)
         self.input_field.returnPressed.connect(self.on_enter)
         input_layout.addWidget(self.input_field)
         
-        input_container = QWidget()
-        input_container.setLayout(input_layout)
-        input_container.setStyleSheet("background-color: #1a1a1a;")
-        layout.addWidget(input_container)
+        self.input_container = QWidget()
+        self.input_container.setLayout(input_layout)
+        layout.addWidget(self.input_container)
         
         # Footer area (Buttons + Context) / 하단 영역
         footer_layout = QHBoxLayout()
@@ -783,15 +887,49 @@ class StudyAITerminal(QMainWindow):
         self.btn_draw.setStyleSheet(btn_style)
         self.btn_draw.clicked.connect(lambda: self.execute_command("/draw"))
         
+        # Model Selector Dropdown / 모델 선택 드롭다운
+        self.model_selector = QComboBox()
+        self.model_selector.addItems(list(MODEL_GROUPS.keys()))
+        self.model_selector.currentIndexChanged.connect(self.on_model_selected)
+        self.model_selector.setFixedWidth(100)
+        self.model_selector.setStyleSheet("""
+            QComboBox {
+                background-color: #333333;
+                color: #ffffff;
+                border: 1px solid #444444;
+                border-radius: 3px;
+                padding: 2px 5px;
+                font-family: Monospace;
+                font-size: 11px;
+            }
+            QComboBox::drop-down {
+                border: none;
+                width: 20px;
+            }
+            QComboBox::down-arrow {
+                image: none;
+                border-left: 4px solid transparent;
+                border-right: 4px solid transparent;
+                border-top: 5px solid #888888;
+                margin-top: 2px;
+            }
+            QComboBox QAbstractItemView {
+                background-color: #222222;
+                color: #cccccc;
+                selection-background-color: #444444;
+                border: 1px solid #444444;
+            }
+        """)
+        
         footer_layout.addWidget(self.btn_clear)
         footer_layout.addWidget(self.btn_reset)
         footer_layout.addWidget(self.btn_draw)
+        footer_layout.addWidget(self.model_selector)
         footer_layout.addStretch()
         
         # Context bar
         self.context_bar = QLabel("Context: 0/32000 tokens (0%)")
         self.context_bar.setFont(QFont("Monospace", 9))
-        self.context_bar.setStyleSheet("color: #666666;")
         footer_layout.addWidget(self.context_bar)
         
         # Toggle Button
@@ -801,10 +939,12 @@ class StudyAITerminal(QMainWindow):
         self.lang_btn.clicked.connect(self.toggle_lang)
         footer_layout.addWidget(self.lang_btn)
         
-        footer_container = QWidget()
-        footer_container.setLayout(footer_layout)
-        footer_container.setStyleSheet("background-color: #111111; border-top: 1px solid #333333;")
-        layout.addWidget(footer_container)
+        self.footer_container = QWidget()
+        self.footer_container.setLayout(footer_layout)
+        layout.addWidget(self.footer_container)
+        
+        self.apply_theme() # Apply initial theme / 초기 테마 적용
+        self.update_ui_texts()
         
         # Focus input
         self.input_field.setFocus()
@@ -837,6 +977,139 @@ class StudyAITerminal(QMainWindow):
         """Manual toggle via button / 버튼을 통한 수동 전환"""
         self.ui_lang = "en" if self.ui_lang == "ko" else "ko"
         self.sync_language_state()
+
+    def set_theme(self, theme_name):
+        """Set the current theme and refresh UI / 테마 설정 및 UI 갱신"""
+        if theme_name in THEMES and self.current_theme != theme_name:
+            self.current_theme = theme_name
+            self.apply_theme()
+            # Mark current theme button / 현재 테마 버튼 표시
+            self.update_theme_buttons()
+
+    def apply_theme(self):
+        """Apply current theme colors to all widgets / 모든 위젯에 현재 테마 색상 적용"""
+        t = THEMES[self.current_theme]
+        
+        # Application Palette / 애플리케이션 팔레트
+        palette = QApplication.palette()
+        palette.setColor(QPalette.Window, QColor(t['bg']))
+        palette.setColor(QPalette.WindowText, QColor(t['fg']))
+        palette.setColor(QPalette.Base, QColor(t['bg']))
+        palette.setColor(QPalette.AlternateBase, QColor(t['bg']))
+        palette.setColor(QPalette.ToolTipBase, QColor(t['bg']))
+        palette.setColor(QPalette.ToolTipText, QColor(t['fg']))
+        palette.setColor(QPalette.Text, QColor(t['fg']))
+        palette.setColor(QPalette.Button, QColor(t['btn_bg']))
+        palette.setColor(QPalette.ButtonText, QColor(t['btn_fg']))
+        palette.setColor(QPalette.Highlight, QColor(t['selection_bg']))
+        palette.setColor(QPalette.HighlightedText, QColor(t['selection_fg']))
+        QApplication.setPalette(palette)
+
+        # Central widget and layout containers / 중앙 위젯 및 컨테이너
+        self.centralWidget().setStyleSheet(f"background-color: {t['bg']};")
+        
+        # Terminal styling / 터미널 스타일링
+        self.terminal.setStyleSheet(f"""
+            QTextEdit {{
+                background-color: {t['bg']};
+                color: {t['fg']};
+                border: none;
+                padding: 12px;
+                selection-background-color: {t['selection_bg']};
+                selection-color: {t['selection_fg']};
+            }}
+        """)
+        
+        # Input Section / 입력 섹션
+        self.input_field.setStyleSheet(f"""
+            QLineEdit {{
+                background-color: {t['input_bg']};
+                color: {t['input_fg']};
+                border: none;
+                padding: 4px;
+                selection-background-color: {t['selection_bg']};
+                selection-color: {t['selection_fg']};
+            }}
+        """)
+        self.input_container.setStyleSheet(f"background-color: {t['input_bg']};")
+        self.prompt_label.setStyleSheet(f"color: {t['prompt_fg']}; background: transparent;")
+        
+        # Buttons / 버튼
+        btn_style = f"""
+            QPushButton {{
+                background-color: {t['btn_bg']};
+                color: {t['btn_fg']};
+                border: none;
+                padding: 4px 10px;
+                border-radius: 3px;
+                font-family: Monospace;
+                font-size: 11px;
+            }}
+            QPushButton:hover {{ background-color: {t['btn_hover']}; color: #ffffff; }}
+        """
+        self.btn_clear.setStyleSheet(btn_style)
+        self.btn_reset.setStyleSheet(btn_style)
+        self.btn_draw.setStyleSheet(btn_style)
+        self.lang_btn.setStyleSheet(btn_style)
+        
+        # Model Selector / 모델 선택기
+        self.model_selector.setStyleSheet(f"""
+            QComboBox {{
+                background-color: {t['btn_bg']};
+                color: {t['btn_fg']};
+                border: 1px solid {t['btn_hover']};
+                border-radius: 3px;
+                padding: 2px 5px;
+                font-family: Monospace;
+                font-size: 11px;
+            }}
+            QComboBox::drop-down {{ border: none; width: 20px; }}
+            QComboBox::down-arrow {{
+                image: none; border-left: 4px solid transparent; border-right: 4px solid transparent;
+                border-top: 5px solid {t['btn_fg']}; margin-top: 2px;
+            }}
+            QComboBox QAbstractItemView {{
+                background-color: {t['bg']};
+                color: {t['fg']};
+                selection-background-color: {t['btn_hover']};
+                border: 1px solid {t['btn_hover']};
+            }}
+        """)
+        
+        # Footer and Context / 하단 및 맥락
+        self.footer_container.setStyleSheet(f"background-color: {t['footer_bg']}; border-top: 1px solid {t['btn_hover']};")
+        self.context_bar.setStyleSheet(f"color: {t['context_fg']};")
+        
+        self.update_theme_buttons()
+
+    def update_theme_buttons(self):
+        """Update style of theme toggle buttons / 테마 토글 버튼 스타일 업데이트"""
+        active_style = "border: 2px solid #6aff6a; color: #ffffff; background-color: #333333;"
+        inactive_style = "border: 1px solid #444444; color: #888888; background-color: transparent;"
+        
+        # For simplicity, adjust standard theme_btn_style
+        # 다크/라이트 테마에 상관없이 상단 버튼 가시성 유지
+        base_style = """
+            QPushButton {
+                border-radius: 4px; padding: 2px 8px; font-family: Monospace; font-size: 10px; font-weight: bold;
+            }
+        """
+        
+        if self.current_theme == "dark":
+            self.btn_theme_dark.setStyleSheet(base_style + "border: 1px solid #6aff6a; color: #6aff6a; background-color: #333333;")
+            self.btn_theme_light.setStyleSheet(base_style + "border: 1px solid #444444; color: #888888; background-color: transparent;")
+        else:
+            self.btn_theme_light.setStyleSheet(base_style + "border: 1px solid #4a148c; color: #4a148c; background-color: #f3e5f5;")
+            self.btn_theme_dark.setStyleSheet(base_style + "border: 1px solid #aaaaaa; color: #888888; background-color: transparent;")
+
+    def on_model_selected(self, index):
+        """Handle model selection from dropdown / 드롭다운 모델 선택 처리"""
+        selected_group = self.model_selector.itemText(index)
+        target_model = MODEL_GROUPS.get(selected_group)
+        if target_model and self.current_model != target_model:
+            self.current_model = target_model
+            self.append_text(f"\n[SYSTEM] Model switched to: {selected_group}\n", "#569cd6")
+            self.append_text(f"[INFO] Switch will apply to the NEXT question / 다음 질문부터 적용됩니다.\n", "#aaaaaa")
 
     def update_ui_texts(self):
         strs = UI_STRINGS[self.ui_lang]
@@ -953,9 +1226,6 @@ class StudyAITerminal(QMainWindow):
     
     def on_enter(self):
         """Handle user input / 사용자 입력 처리"""
-        if self.is_streaming:
-            return
-
         user_input = self.input_field.text().strip()
         if not user_input:
             return
@@ -964,45 +1234,14 @@ class StudyAITerminal(QMainWindow):
         self.input_field.clear()
 
         # Handle slash commands / 슬래시 명령어 처리
-        strs = UI_STRINGS[self.ui_lang]
-        if user_input == "/sclear":
-            # RESET BOTH: Memory and screen / 기억과 화면 모두 초기화
-            self.conversation_history = []
-            self.total_tokens = 0
-            self.terminal.clear()
-            self.show_banner()
-            self.append_text("\n" + strs["msg_sclear"] + "\n", "#569cd6")
+        if user_input.startswith("/"):
+            self.handle_command(user_input)
             return
-        
-        elif user_input == "/clear":
-            # CLEAR SCREEN ONLY: Keep memory / 화면만 지움 (기억 유지)
-            self.last_screen_html = self.terminal.toHtml() # Save for undo
-            self.terminal.clear()
-            self.append_text("\n" + strs["msg_clear"] + "\n", "#569cd6")
-            return
-        
-        elif user_input == "/draw":
-            # RESTORE PREVIOUS SCREEN / 이전 화면 복구
-            if self.last_screen_html:
-                self.terminal.setHtml(self.last_screen_html)
-                self.append_text("\n" + strs["msg_draw"] + "\n", "#569cd6")
-            else:
-                self.append_text("\n" + strs["msg_draw_fail"] + "\n", "#f44747")
+            
+        if self.is_streaming:
             return
 
-        elif user_input == "/trans":
-            # Toggle language mode / 언어 전환
-            self.toggle_lang()
-            self.append_text("\n" + strs["msg_trans"] + "\n", "#569cd6")
-            return
-
-        elif user_input == "/help":
-            self.show_banner()
-            return
-        
-        elif user_input == "/exit":
-            self.close()
-            return
+        # Append user message to terminal / 사용자 메시지 터미널에 추가
             
         # Append user message to terminal / 사용자 메시지 터미널에 추가
         self.append_text(f"\nYOU: {user_input}\n", "#4ec9b0")
@@ -1060,38 +1299,72 @@ class StudyAITerminal(QMainWindow):
     
     def handle_command(self, cmd):
         """Handle slash commands / 슬래시 명령어 처리"""
-        if cmd == "/clear":
-            self.terminal.clear()
-            self.conversation_history.clear()
+        strs = UI_STRINGS[self.ui_lang]
+        
+        if cmd == "/sclear":
+            # RESET BOTH: Memory and screen / 기억과 화면 모두 초기화
+            self.conversation_history = []
             self.total_tokens = 0
-            self.update_context_bar()
+            self.terminal.clear()
             self.show_banner()
+            self.append_text("\n" + strs["msg_sclear"] + "\n", "#569cd6")
+            self.update_context_bar()
+        elif cmd == "/clear":
+            # CLEAR SCREEN ONLY: Keep memory / 화면만 지움 (기억 유지)
+            self.last_screen_html = self.terminal.toHtml() # Save for undo
+            self.terminal.clear()
+            self.append_text("\n" + strs["msg_clear"] + "\n", "#569cd6")
+        elif cmd == "/draw":
+            # RESTORE PREVIOUS SCREEN / 이전 화면 복구
+            if self.last_screen_html:
+                self.terminal.setHtml(self.last_screen_html)
+                self.append_text("\n" + strs["msg_draw"] + "\n", "#569cd6")
+            else:
+                self.append_text("\n" + strs["msg_draw_fail"] + "\n", "#f44747")
+        elif cmd == "/trans":
+            self.toggle_lang()
+            self.append_text("\n" + strs["msg_trans"] + "\n", "#569cd6")
         elif cmd == "/help":
-            self.append_text("\n  === Commands / 명령어 ===\n", "#6aff6a")
-            self.append_text("  /clear   - Clear screen & history / 화면 및 기록 초기화\n", "#aaaaaa")
-            self.append_text("  /help    - Show this help / 도움말 표시\n", "#aaaaaa")
-            self.append_text("  /exit    - Exit application / 종료\n\n", "#aaaaaa")
+            self.show_banner()
         elif cmd.startswith("/model"):
             parts = cmd.split(" ", 1)
             if len(parts) > 1:
-                target_model = parts[1].strip()
-                if target_model in AVAILABLE_MODELS:
+                target_input = parts[1].strip().lower()
+                
+                # Check simplified names first / 간소화된 이름 먼저 확인
+                group_map = {k.lower(): k for k in MODEL_GROUPS.keys()}
+                if target_input in group_map:
+                    group_name = group_map[target_input]
+                    target_model = MODEL_GROUPS[group_name]
                     self.current_model = target_model
+                    # Sync dropdown / 드롭다운 동기화
+                    idx = self.model_selector.findText(group_name)
+                    if idx >= 0:
+                        self.model_selector.blockSignals(True)
+                        self.model_selector.setCurrentIndex(idx)
+                        self.model_selector.blockSignals(False)
+                    self.append_text(f"\n[SYSTEM] Model switched to: {group_name} ({self.current_model})\n", "#569cd6")
+                    self.append_text(f"[INFO] Switch will apply to the NEXT question / 다음 질문부터 적용됩니다.\n", "#aaaaaa")
+                elif target_input in AVAILABLE_MODELS:
+                    self.current_model = target_input
                     self.append_text(f"\n[SYSTEM] Model switched to: {self.current_model}\n", "#569cd6")
+                    self.append_text(f"[INFO] Switch will apply to the NEXT question / 다음 질문부터 적용됩니다.\n", "#aaaaaa")
                 else:
-                    self.append_text(f"\n[SYSTEM] Unknown model. Available: {', '.join(AVAILABLE_MODELS.keys())}\n", "#ff6a6a")
+                    self.append_text(f"\n[SYSTEM] Unknown model. Available keywords: mistral, gpt, gemini\n", "#ff6a6a")
             else:
                 self.append_text(f"\n[SYSTEM] Current model: {self.current_model}\n", "#aaaaaa")
                 self.append_text(f"  Available: {', '.join(AVAILABLE_MODELS.keys())}\n", "#aaaaaa")
-                self.append_text("  Usage: /model <model_name>\n", "#aaaaaa")
+                self.append_text("  Usage: /model <mistral|gpt|gemini>\n", "#aaaaaa")
         elif cmd == "/exit":
-            QApplication.quit()
+            self.close()
         else:
-            self.append_text(f"  Unknown command: {cmd}\n\n", "#ff6a6a")
+            self.append_text(f"\n[SYSTEM] Unknown command: {cmd}\n", "#ff6a6a")
     
     def api_call(self, user_input):
         """Make API call in background thread / 백그라운드 스레드에서 API 호출"""
-        provider = AVAILABLE_MODELS.get(self.current_model, "mistral")
+        # Capture model and provider at START to handle mid-request switches / 시작 시 모델과 제공자를 캡처하여 중간 전환 처리
+        active_model = self.current_model
+        provider = AVAILABLE_MODELS.get(active_model, "mistral")
         
         try:
             messages = [{"role": "system", "content": SYSTEM_PROMPT}]
@@ -1099,14 +1372,11 @@ class StudyAITerminal(QMainWindow):
             
             if provider == "mistral":
                 payload = {
-                    "model": self.current_model,
+                    "model": active_model,
                     "messages": messages,
                     "stream": True
                 }
-                headers = {
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {MISTRAL_API_KEY}"
-                }
+                headers = {"Content-Type": "application/json"}
                 response = requests.post(
                     MISTRAL_API_URL, json=payload, headers=headers,
                     stream=True, timeout=60
@@ -1127,89 +1397,33 @@ class StudyAITerminal(QMainWindow):
                                     if content: self.signals.chunk_received.emit(content)
                             except: pass
                             
-            elif provider == "openai":
-                # Standard OpenAI Chat Completions using requests (to keep streaming logic similar)
-                # 요청을 사용한 표준 OpenAI 채팅 완료 (스트리밍 로직을 유사하게 유지)
-                payload = {
-                    "model": self.current_model,
-                    "messages": messages,
-                    "stream": True
-                }
-                headers = {
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {OPENAI_API_KEY}"
-                }
+            elif provider == "google":
+                # Google Gemini Relay Implementation / Google Gemini 중계 구현
+                google_messages = []
+                for msg in messages:
+                    role = "user" if msg["role"] in ["user", "system"] else "model"
+                    google_messages.append({"role": role, "parts": [{"text": msg["content"]}]})
+                
+                payload = {"contents": google_messages}
+                headers = {"Content-Type": "application/json"}
+                
                 response = requests.post(
-                    "https://api.openai.com/v1/chat/completions",
-                    json=payload, headers=headers, stream=True, timeout=60
+                    GEMINI_API_URL, json=payload, headers=headers,
+                    stream=True, timeout=60
                 )
                 response.raise_for_status()
                 
                 for line in response.iter_lines():
                     if line:
                         line = line.decode("utf-8")
-                        if line.startswith("data: "):
-                            data = line[6:]
-                            if data == "[DONE]": break
-                            try:
-                                parsed = json.loads(data)
-                                choices = parsed.get("choices", [])
-                                if choices:
-                                    content = choices[0].get("delta", {}).get("content", "")
-                                    if content: self.signals.chunk_received.emit(content)
-                            except: pass
-
-            elif provider == "openai-beta":
-                # Special GPT-5-NANO implementation using the user's provided snippet
-                # 사용자가 제공한 스니펫을 사용한 특수 GPT-5-NANO 구현
-                try:
-                    from openai import OpenAI
-                    client = OpenAI(api_key=OPENAI_API_KEY)
-                    
-                    # Note: User provided 'responses.create' which is non-standard but requested
-                    # 'responses.create'는 비표준이지만 요청된 것임
-                    response = client.responses.create(
-                        model=self.current_model,
-                        input=user_input, # Snippet use 'input' not 'messages'
-                        store=True,
-                    )
-                    # Snippet uses 'output_text'
-                    if hasattr(response, 'output_text'):
-                        self.signals.chunk_received.emit(response.output_text)
-                    else:
-                        # Fallback if the experimental API returns standard format
-                        self.signals.chunk_received.emit(str(response))
-                        
-                except Exception as e:
-                    self.signals.stream_error.emit(f"OpenAI Library Error: {str(e)}")
-                    return
-
-            elif provider == "google":
-                # Google Gemini Implementation / Google Gemini 구현
-                try:
-                    import google.generativeai as genai
-                    genai.configure(api_key=GEMINI_API_KEY)
-                    model = genai.GenerativeModel(self.current_model)
-                    
-                    # Map messages to Google format / 구글 형식으로 메시지 매핑
-                    # Mistral: role: system/user/assistant
-                    # Gemini: role: user/model, system_instruction is separate
-                    google_messages = []
-                    for msg in self.conversation_history:
-                        role = "user" if msg["role"] == "user" else "model"
-                        google_messages.append({"role": role, "parts": [msg["content"]]})
-                    
-                    # Start chat with history / 기록과 함께 채팅 시작
-                    chat = model.start_chat(history=google_messages)
-                    response = chat.send_message(user_input, stream=True)
-                    
-                    for chunk in response:
-                        if chunk.text:
-                            self.signals.chunk_received.emit(chunk.text)
-                            
-                except Exception as e:
-                    self.signals.stream_error.emit(f"Gemini Error: {str(e)}")
-                    return
+                        try:
+                            if line.startswith("data: "): line = line[6:]
+                            parsed = json.loads(line)
+                            candidates = parsed.get("candidates", [])
+                            if candidates:
+                                content = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+                                if content: self.signals.chunk_received.emit(content)
+                        except: pass
 
             self.signals.stream_finished.emit()
             
@@ -1233,7 +1447,8 @@ class StudyAITerminal(QMainWindow):
         self.current_response += chunk
         # Stream raw text during streaming (markdown rendered on finish)
         # 스트리밍 중에는 원시 텍스트 출력 (완료 시 마크다운 렌더링)
-        self.append_text(chunk, "#d4d4d4")
+        color = THEMES[self.current_theme]['fg']
+        self.append_text(chunk, color)
     
     def on_stream_finished(self):
         """Handle stream completion / 스트림 완료 처리"""
@@ -1263,7 +1478,7 @@ class StudyAITerminal(QMainWindow):
             cursor.removeSelectedText()
             
             # Insert rendered markdown HTML / 렌더링된 마크다운 HTML 삽입
-            rendered = markdown_to_html(self.current_response)
+            rendered = markdown_to_html(self.current_response, self.current_theme)
             cursor.insertHtml(rendered)
             
             self.terminal.setTextCursor(cursor)
