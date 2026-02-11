@@ -882,41 +882,42 @@ class StudyAITerminal(QMainWindow):
         self.terminal.ensureCursorVisible()
     
     def show_banner(self):
-        """Show startup banner / 시작 배너 표시"""
+        """Show startup banner (HTML version for perfect alignment) / 시작 배너 표시 (완벽한 정렬을 위한 HTML 버전)"""
         strs = UI_STRINGS[self.ui_lang]
         greeting = random.choice(GREETINGS[self.ui_lang])
         
-        # Inner width 48 -> Total width 50
-        BOX_W = 48
-        # Logo and subtitle are ALWAYS English inside the box
-        # 박스 안의 로고와 부제목은 항상 영어
+        # Consistent English "Logo" content / 일관된 영어 "로고" 내용
         title = "StudyAI Terminal"
         subtitle = "Python Edition • Mistral AI"
         
-        # Build box lines carefully / 박스 라인을 정교하게 구성
-        border_col = "#6aff6a"
-        
-        # Top line
-        self.append_text("╔" + "═" * BOX_W + "╗\n", border_col)
-        
-        # Title line (Inner text white)
-        pad_t = _center_text(title, BOX_W)
-        self.append_text("║", border_col)
-        self.append_text(pad_t, "#ffffff")
-        self.append_text("║\n", border_col)
-        
-        # Subtitle line (Inner text gray)
-        pad_s = _center_text(subtitle, BOX_W)
-        self.append_text("║", border_col)
-        self.append_text(pad_s, "#888888")
-        self.append_text("║\n", border_col)
-        
-        # Bottom line
-        self.append_text("╚" + "═" * BOX_W + "╝\n", border_col)
-        
-        self.append_text(f"\n  {greeting}\n", "#aaaaaa")
-        self.append_text(f"  {strs['banner_hint']}\n", "#666666")
-        self.append_text(f"  {strs['banner_cmd']}\n\n", "#666666")
+        # HTML Banner Box / HTML 배너 박스
+        banner_html = f"""
+        <div style="margin-bottom: 10px;">
+            <table style="border: 2px solid #6aff6a; background-color: transparent; width: 100%; border-radius: 5px;">
+                <tr>
+                    <td style="padding: 15px; text-align: center;">
+                        <div style="color: #6aff6a; font-family: 'DejaVu Sans Mono', monospace; font-size: 18pt; font-weight: bold; margin-bottom: 5px;">
+                            {title}
+                        </div>
+                        <div style="color: #888888; font-family: 'DejaVu Sans Mono', monospace; font-size: 11pt;">
+                            {subtitle}
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div style="color: #aaaaaa; margin-top: 15px; font-family: 'DejaVu Sans Mono', monospace;">
+            &nbsp;&nbsp;{greeting}
+        </div>
+        <div style="color: #666666; margin-top: 5px; font-family: 'DejaVu Sans Mono', monospace;">
+            &nbsp;&nbsp;{strs['banner_hint']}
+        </div>
+        <div style="color: #666666; font-family: 'DejaVu Sans Mono', monospace;">
+            &nbsp;&nbsp;{strs['banner_cmd']}
+        </div>
+        <br>
+        """
+        self.append_html(banner_html)
 
 
 
