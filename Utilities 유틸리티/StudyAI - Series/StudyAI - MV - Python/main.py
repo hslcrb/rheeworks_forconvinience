@@ -681,7 +681,8 @@ class StudyAITerminal(QMainWindow):
         # Terminal output / 터미널 출력
         self.terminal = QTextEdit()
         self.terminal.setReadOnly(True)
-        self.terminal.setFont(QFont("Monospace", 12))
+        # Using a more robust font / 보다 견고한 폰트 사용
+        self.terminal.setFont(QFont("DejaVu Sans Mono, monospace", 11))
         self.terminal.setStyleSheet("""
             QTextEdit {
                 background-color: #1a1a1a;
@@ -887,27 +888,36 @@ class StudyAITerminal(QMainWindow):
         
         # Inner width 48 -> Total width 50
         BOX_W = 48
-        title = strs["banner_title"]
-        subtitle = strs["banner_sub"]
+        # Logo and subtitle are ALWAYS English inside the box
+        # 박스 안의 로고와 부제목은 항상 영어
+        title = "StudyAI Terminal"
+        subtitle = "Python Edition • Mistral AI"
         
-        # Border color #6aff6a (Green)
-        self.append_text("╔" + "═" * BOX_W + "╗\n", "#6aff6a")
+        # Build box lines carefully / 박스 라인을 정교하게 구성
+        border_col = "#6aff6a"
         
-        # Title line
-        self.append_text("║", "#6aff6a")
-        self.append_text(_center_text(title, BOX_W), "#ffffff")
-        self.append_text("║\n", "#6aff6a")
+        # Top line
+        self.append_text("╔" + "═" * BOX_W + "╗\n", border_col)
         
-        # Subtitle line
-        self.append_text("║", "#6aff6a")
-        self.append_text(_center_text(subtitle, BOX_W), "#888888")
-        self.append_text("║\n", "#6aff6a")
+        # Title line (Inner text white)
+        pad_t = _center_text(title, BOX_W)
+        self.append_text("║", border_col)
+        self.append_text(pad_t, "#ffffff")
+        self.append_text("║\n", border_col)
         
-        self.append_text("╚" + "═" * BOX_W + "╝\n", "#6aff6a")
+        # Subtitle line (Inner text gray)
+        pad_s = _center_text(subtitle, BOX_W)
+        self.append_text("║", border_col)
+        self.append_text(pad_s, "#888888")
+        self.append_text("║\n", border_col)
+        
+        # Bottom line
+        self.append_text("╚" + "═" * BOX_W + "╝\n", border_col)
         
         self.append_text(f"\n  {greeting}\n", "#aaaaaa")
         self.append_text(f"  {strs['banner_hint']}\n", "#666666")
         self.append_text(f"  {strs['banner_cmd']}\n\n", "#666666")
+
 
 
     
