@@ -88,10 +88,10 @@ UI_STRINGS = {
         "btn_clear": "화면 지우기",
         "btn_reset": "대화 초기화",
         "btn_draw": "화면 복구",
-        "btn_lang": "한글",
+        "btn_lang_target": "English",
         "prompt": "studyai>",
         "banner_title": "StudyAI Terminal",
-        "banner_sub": "Python Edition • Mistral AI",
+        "banner_sub": "파이썬 에디션 • Mistral AI",
         "banner_hint": "질문을 입력하고 엔터를 누르세요.",
         "banner_cmd": "명령어: /clear, /sclear, /draw, /trans, /help, /exit",
         "msg_sclear": "[SYSTEM] 세션 및 AI 기억이 초기화되었습니다.",
@@ -105,7 +105,7 @@ UI_STRINGS = {
         "btn_clear": "Clear Screen",
         "btn_reset": "Reset Session",
         "btn_draw": "Restore Screen",
-        "btn_lang": "English",
+        "btn_lang_target": "한글",
         "prompt": "studyai>",
         "banner_title": "StudyAI Terminal",
         "banner_sub": "Python Edition • Mistral AI",
@@ -828,8 +828,10 @@ class StudyAITerminal(QMainWindow):
 
     def update_lang_btn_style(self):
         """Update button appearance / 버튼 외형 업데이트"""
+        strs = UI_STRINGS[self.ui_lang]
+        self.lang_btn.setText(strs["btn_lang_target"])
+        
         is_ko = (self.ui_lang == "ko")
-        self.lang_btn.setText("한글" if is_ko else "English")
         if is_ko:
             # High-visibility KO mode / 눈에 띄는 한국어 모드
             self.lang_btn.setStyleSheet("""
@@ -886,9 +888,9 @@ class StudyAITerminal(QMainWindow):
         strs = UI_STRINGS[self.ui_lang]
         greeting = random.choice(GREETINGS[self.ui_lang])
         
-        # Consistent English "Logo" content / 일관된 영어 "로고" 내용
+        # Logo remains English, but subtitle translates / 로고는 영어로 유지되지만 부제목은 번역됨
         title = "StudyAI Terminal"
-        subtitle = "Python Edition • Mistral AI"
+        subtitle = strs["banner_sub"]
         
         # HTML Banner Box / HTML 배너 박스
         banner_html = f"""
@@ -906,13 +908,13 @@ class StudyAITerminal(QMainWindow):
                 </tr>
             </table>
         </div>
-        <div style="color: #aaaaaa; margin-top: 15px; font-family: 'DejaVu Sans Mono', monospace;">
+        <div style="color: #aaaaaa; margin-top: 15px; font-family: 'DejaVu Sans Mono', monospace; font-size: 11pt;">
             &nbsp;&nbsp;{greeting}
         </div>
-        <div style="color: #666666; margin-top: 5px; font-family: 'DejaVu Sans Mono', monospace;">
+        <div style="color: #666666; margin-top: 5px; font-family: 'DejaVu Sans Mono', monospace; font-size: 10pt;">
             &nbsp;&nbsp;{strs['banner_hint']}
         </div>
-        <div style="color: #666666; font-family: 'DejaVu Sans Mono', monospace;">
+        <div style="color: #666666; font-family: 'DejaVu Sans Mono', monospace; font-size: 10pt;">
             &nbsp;&nbsp;{strs['banner_cmd']}
         </div>
         <br>
