@@ -709,6 +709,7 @@ void on_send_clicked(GtkWidget *widget, gpointer data) {
             gtk_widget_destroy(streaming_dot_label);
         }
         streaming_dot_label = gtk_label_new("●");
+        gtk_style_context_add_class(gtk_widget_get_style_context(streaming_dot_label), "streaming-dot");
         gtk_widget_set_halign(streaming_dot_label, GTK_ALIGN_START);
         gtk_widget_set_margin_start(streaming_dot_label, 82);
         gtk_list_box_insert(GTK_LIST_BOX(chat_list_box), streaming_dot_label, -1);
@@ -753,7 +754,9 @@ void set_theme(int dark) {
         ".avatar-text { background: linear-gradient(135deg, #4a4a4a, #5a5a5a); color: white; border-radius: 8px; padding: 8px; font-size: 11px; font-weight: bold; }"
         "label.title { font-size: 42px; font-weight: 700; color: white; text-shadow: 0 4px 20px rgba(102,102,102,0.5); }"
         "label.subtitle { font-size: 16px; color: rgba(255,255,255,0.7); font-weight: 300; letter-spacing: 0.5px; }"
-        "label.context-info { font-size: 12px; color: rgba(255,255,255,0.6); }";
+        "label.context-info { font-size: 12px; color: rgba(255,255,255,0.6); }"
+        "label.streaming-dot { font-size: 24px; color: #ccff00; }"
+        "* { selection-background-color: #ccff00; selection-color: #000000; }";
     } else {
         css = 
         "window { background: linear-gradient(135deg, #ffffff, #f5f5f5, #fafafa); color: #333; }"
@@ -771,7 +774,9 @@ void set_theme(int dark) {
         ".avatar-text { background: linear-gradient(135deg, #5a5a5a, #6a6a6a); color: white; border-radius: 8px; padding: 8px; font-size: 11px; font-weight: bold; }"
         "label.title { font-size: 42px; font-weight: 700; color: #444; text-shadow: 0 2px 10px rgba(68,68,68,0.15); }"
         "label.subtitle { font-size: 16px; color: rgba(68,68,68,0.65); font-weight: 300; letter-spacing: 0.5px; }"
-        "label.context-info { font-size: 12px; color: rgba(0,0,0,0.5); }";
+        "label.context-info { font-size: 12px; color: rgba(0,0,0,0.5); }"
+        "label.streaming-dot { font-size: 24px; color: #7b1fa2; }"
+        "* { selection-background-color: #d1c4e9; selection-color: #1a1a1a; }";
     }
     
     gtk_css_provider_load_from_data(provider, css, -1, NULL);

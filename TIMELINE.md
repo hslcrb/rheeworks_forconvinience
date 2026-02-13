@@ -77,6 +77,14 @@
 - ✅ **Monorepo Integration**: 루트 README 및 StudyAI 시리즈(C/Python) README에 API 가이드 연동 완료 / Integrated API guide into root and StudyAI series (C/Python) READMEs
 - ✅ **API Specification Sync**: 최신 릴레이 엔드포인트 및 페이로드 규격 문서화 완료 / Documented latest relay endpoints and payload specifications
 
+### [UI] Theme & UX Polish / 테마 및 UX 정교화
+
+**By Antigravity (Gemini) / Antigravity (Gemini)에 의해**
+
+- ✅ **Text Selection Colors**: Python/C 전 버전 텍스트 드래그 색상 최적화 완료 (라이트: 파스텔 퍼플, 다크: 연두색) / Optimized text selection colors across Python/C versions
+- ✅ **Blinking Indicator (C)**: C 버전에서도 Python과 동일한 테마 기반 깜빡이는 점(●) 인디케이터 구현 완료 / Implemented themed blinking dot indicator in C version
+- ✅ **Visual Consistency**: 라이트/다크 모드 간 시각적 대비 및 사용자 경험 강화 / Enhanced visual contrast and UX between light/dark modes
+
 ---
 
 **Rheehose (Rhee Creative) 2008-2026**

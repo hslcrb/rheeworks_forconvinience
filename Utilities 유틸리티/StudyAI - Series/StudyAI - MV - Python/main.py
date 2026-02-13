@@ -79,8 +79,8 @@ THEMES = {
         "btn_hover": "#444444",
         "prompt_fg": "#6aff6a",
         "context_fg": "#666666",
-        "selection_bg": "#ff6a6a",
-        "selection_fg": "#000000",
+        "selection_bg": "#ccff00", # Lime Green / 연두색
+        "selection_fg": "#000000", # Black / 검정색
         "bold_fg": "#ffffff",
         "code_bg": "#2a2a2a",
         "code_fg": "#9cdcfe",
@@ -99,8 +99,8 @@ THEMES = {
         "btn_hover": "#c17fff",
         "prompt_fg": "#2e7d32",
         "context_fg": "#7e57c2",
-        "selection_bg": "#b39ddb",
-        "selection_fg": "#ffffff",
+        "selection_bg": "#d1c4e9", # Light Pastel Purple / 연한 파스텔 퍼플
+        "selection_fg": "#1a1a1a", # Dark Grey / 어두운 회색
         "bold_fg": "#2d005d", # Match theme fg / 테마 fg와 일치
         "code_bg": "#e1bee7",
         "code_fg": "#4a148c",
