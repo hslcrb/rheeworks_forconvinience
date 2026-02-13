@@ -1391,7 +1391,9 @@ class StudyAITerminal(QMainWindow):
                             if data == "[DONE]": break
                             try:
                                 parsed = json.loads(data)
-                                choices = parsed.get("choices", [])
+                                # Extract from payload wrapper for juni_relay
+                                payload = parsed.get("payload", parsed)
+                                choices = payload.get("choices", [])
                                 if choices:
                                     content = choices[0].get("delta", {}).get("content", "")
                                     if content: self.signals.chunk_received.emit(content)
@@ -1419,7 +1421,9 @@ class StudyAITerminal(QMainWindow):
                         try:
                             if line.startswith("data: "): line = line[6:]
                             parsed = json.loads(line)
-                            candidates = parsed.get("candidates", [])
+                            # Extract from payload wrapper for juni_relay
+                            payload = parsed.get("payload", parsed)
+                            candidates = payload.get("candidates", [])
                             if candidates:
                                 content = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
                                 if content: self.signals.chunk_received.emit(content)

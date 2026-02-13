@@ -322,6 +322,74 @@ size_t StreamCallback(void *contents, size_t size, size_t nmemb, void *userp) {
     memcpy(data, contents, realsize);
     data[realsize] = 0;
 
+    // Check for JSON object (Error or Non-streaming response)
+    if (data[0] == '{') {
+        cJSON *json = cJSON_Parse(data);
+        if (json) {
+            cJSON *payload = cJSON_GetObjectItemCaseSensitive(json, "payload");
+            if (payload) {
+                // Check for Mistral Error: {"detail": "..."}
+                cJSON *detail = cJSON_GetObjectItemCaseSensitive(payload, "detail");
+                if (cJSON_IsString(detail)) {
+                    char error_msg[1024];
+                    snprintf(error_msg, sizeof(error_msg), "Error: %s", detail->valuestring);
+                    g_idle_add(update_bot_message, strdup(error_msg));
+                }
+                
+                // Check for Gemini Error: {"error": {"message": "..."}}
+                cJSON *error_obj = cJSON_GetObjectItemCaseSensitive(payload, "error");
+                if (error_obj) {
+                    cJSON *message = cJSON_GetObjectItemCaseSensitive(error_obj, "message");
+                    if (cJSON_IsString(message)) {
+                        char error_msg[1024];
+                        snprintf(error_msg, sizeof(error_msg), "Error: %s", message->valuestring);
+                        g_idle_add(update_bot_message, strdup(error_msg));
+                    }
+                }
+
+                // Check for Mistral Success: payload.choices[0].message.content
+                cJSON *choices = cJSON_GetObjectItemCaseSensitive(payload, "choices");
+                if (cJSON_IsArray(choices)) {
+                    cJSON *choice = cJSON_GetArrayItem(choices, 0);
+                    if (choice) {
+                        cJSON *message = cJSON_GetObjectItemCaseSensitive(choice, "message");
+                        if (message) {
+                            cJSON *content = cJSON_GetObjectItemCaseSensitive(message, "content");
+                            if (cJSON_IsString(content)) {
+                                g_idle_add(update_bot_message, strdup(content->valuestring));
+                            }
+                        }
+                    }
+                }
+
+                // Check for Gemini Success: payload.candidates[0].content.parts[0].text
+                cJSON *candidates = cJSON_GetObjectItemCaseSensitive(payload, "candidates");
+                if (cJSON_IsArray(candidates)) {
+                     cJSON *candidate = cJSON_GetArrayItem(candidates, 0);
+                     if (candidate) {
+                         cJSON *content = cJSON_GetObjectItemCaseSensitive(candidate, "content");
+                         if (content) {
+                             cJSON *parts = cJSON_GetObjectItemCaseSensitive(content, "parts");
+                             if (cJSON_IsArray(parts)) {
+                                 cJSON *part = cJSON_GetArrayItem(parts, 0);
+                                 if (part) {
+                                     cJSON *text = cJSON_GetObjectItemCaseSensitive(part, "text");
+                                     if (cJSON_IsString(text)) {
+                                         g_idle_add(update_bot_message, strdup(text->valuestring));
+                                     }
+                                 }
+                             }
+                         }
+                     }
+                }
+            }
+            cJSON_Delete(json);
+            // If it was a JSON object, we assume it's not an SSE stream and return
+            free(data);
+            return realsize;
+        }
+    }
+
     char *line = strtok(data, "\n");
     while (line != NULL) {
         if (strncmp(line, "data: ", 6) == 0) {
