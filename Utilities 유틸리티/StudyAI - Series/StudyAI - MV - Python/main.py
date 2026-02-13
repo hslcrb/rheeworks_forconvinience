@@ -1377,30 +1377,58 @@ class StudyAITerminal(QMainWindow):
                     "stream": True
                 }
                 headers = {"Content-Type": "application/json"}
+                print(f"[DEBUG] Sending Mistral request to {MISTRAL_API_URL}")
+                print(f"[DEBUG] Payload: {json.dumps(payload, indent=2)}")
                 response = requests.post(
                     MISTRAL_API_URL, json=payload, headers=headers,
                     stream=True, timeout=60
                 )
+                print(f"[DEBUG] Response status: {response.status_code}")
+                print(f"[DEBUG] Response headers: {dict(response.headers)}")
                 response.raise_for_status()
                 
                 for line in response.iter_lines():
                     if line:
                         line = line.decode("utf-8")
+                        print(f"[DEBUG] Received line: {line[:200]}")
+                        
+                        # Handle both SSE format ("data: {...}") and direct JSON
                         if line.startswith("data: "):
-                            data = line[6:]
-                            if data == "[DONE]": break
-                            try:
-                                parsed = json.loads(data)
-                                # Extract from payload wrapper for juni_relay (if present)
-                                # SSE chunks might come unwrapped, so fallback to direct parse
-                                payload = parsed.get("payload", parsed)
-                                choices = payload.get("choices", [])
-                                if choices:
-                                    content = choices[0].get("delta", {}).get("content", "")
-                                    if content: self.signals.chunk_received.emit(content)
-                            except Exception as e:
-                                print(f"[DEBUG] Mistral parse error: {e}, data: {data[:100]}")
-                                pass
+                            data = line[6:]  # SSE format
+                        elif line.startswith("{"):  # Direct JSON response
+                            data = line
+                        else:
+                            continue  # Skip non-data lines
+                        
+                        if data == "[DONE]":
+                            print("[DEBUG] Received [DONE] marker")
+                            break
+                            
+                        try:
+                            parsed = json.loads(data)
+                            print(f"[DEBUG] Parsed JSON: {json.dumps(parsed, indent=2)[:300]}")
+                            
+                            # Extract from payload wrapper for juni_relay
+                            payload_data = parsed.get("payload", parsed)
+                            choices = payload_data.get("choices", [])
+                            
+                            if choices:
+                                # Try streaming format first (delta.content)
+                                content = choices[0].get("delta", {}).get("content", "")
+                                # Fallback to complete response format (message.content)
+                                if not content:
+                                    content = choices[0].get("message", {}).get("content", "")
+                                
+                                if content:
+                                    print(f"[DEBUG] Emitting content: {content[:50]}")
+                                    self.signals.chunk_received.emit(content)
+                            else:
+                                print(f"[DEBUG] No choices found in: {json.dumps(payload_data, indent=2)[:200]}")
+                        except Exception as e:
+                            print(f"[DEBUG] Mistral parse error: {e}, data: {data[:100]}")
+                            import traceback
+                            traceback.print_exc()
+                            pass
                             
             elif provider == "google":
                 # Google Gemini Relay Implementation / Google Gemini 중계 구현
