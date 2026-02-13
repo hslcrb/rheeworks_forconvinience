@@ -17,10 +17,14 @@ A simple C-based AI chat application.
 - **Automated Build**: GitHub Actions automatically builds Linux binaries / GitHub Actions가 리눅스 바이너리를 자동 빌드
 - **Release**: Executables included in GitHub Releases / 실행 파일이 깃허브 릴리즈에 포함됨
 
-## 📦 의존성 / Dependencies
 ```bash
 sudo apt-get install libgtk-3-dev libcurl4-openssl-dev librsvg2-dev
 ```
+
+## 🌐 API Relay Guide / API 릴레이 가이드
+본 프로젝트는 JUNI AI 릴레이 API를 사용하여 AI 모델과 통신합니다. 자세한 사용법은 다음 가이드를 참조하십시오:  
+This project uses the JUNI AI Relay API for AI communication. See the full guide for details:  
+👉 **[JUNI AI Relay API Guide](../JUNI_AI_RELAY_GUIDE.md)**
 
 ## 🚀 빌드 및 실행 / Build & Run
 ```bash

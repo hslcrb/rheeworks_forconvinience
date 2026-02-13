@@ -51,6 +51,7 @@ cd "Utilities 유틸리티/Typer-타이퍼 Series/베이직 버전-Basic Version
 ## 📜 가이드라인 / Guidelines
 
 - **에이전트 수칙**: [GEMINI.md](file:///home/rheehose/문서/rheeworks_forconvinience/GEMINI.md)
+- **API 이용 가이드**: [JUNI_AI_RELAY_GUIDE.md](file:///home/rheehose/문서/rheeworks_forconvinience/Utilities 유틸리티/StudyAI - Series/JUNI_AI_RELAY_GUIDE.md)
 - **기여 방법**: [CONTRIBUTING.md](file:///home/rheehose/문서/rheeworks_forconvinience/CONTRIBUTING.md)
 - **프로젝트 타임라인**: [TIMELINE.md](file:///home/rheehose/문서/rheeworks_forconvinience/TIMELINE.md)
 

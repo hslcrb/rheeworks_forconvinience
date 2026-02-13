@@ -11,6 +11,11 @@ A PySide6-based terminal-style AI chat application.
 - **슬래시 명령어**: /clear, /help, /exit / Slash commands support
 - **깜빡이는 인디케이터**: 응답 생성 중 점 깜빡임 / Blinking dot during response generation
 
+## 🌐 API Relay Guide / API 릴레이 가이드
+본 프로젝트는 JUNI AI 릴레이 API를 사용하여 AI 모델과 통신합니다. 자세한 사용법은 다음 가이드를 참조하십시오:  
+This project uses the JUNI AI Relay API for AI communication. See the full guide for details:  
+👉 **[JUNI AI Relay API Guide](../JUNI_AI_RELAY_GUIDE.md)**
+
 ## 🚀 실행 방법 / How to Run
 
 가장 간단한 실행 방법은 제공된 쉘 스크립트를 사용하는 것입니다:

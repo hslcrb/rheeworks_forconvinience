@@ -69,6 +69,14 @@
 - ✅ **Adaptive Responses**: 질문 복잡도에 따른 적응형 응답 길이 시스템 / Adaptive response length based on question complexity
 - ✅ **CI/CD Integration**: 두 버전 모두 빌드 파이프라인에 통합 / Both versions integrated into build pipeline
 
+### [DOCS] JUNI AI Relay API Documentation / JUNI AI 릴레이 API 문서화
+
+**By Antigravity (Gemini) / Antigravity (Gemini)에 의해**
+
+- ✅ **JUNI_AI_RELAY_GUIDE.md**: 수제 JUNI AI 릴레이 API 가이드 제작 및 배포 완료 / Created and deployed handcrafted JUNI AI Relay API Guide
+- ✅ **Monorepo Integration**: 루트 README 및 StudyAI 시리즈(C/Python) README에 API 가이드 연동 완료 / Integrated API guide into root and StudyAI series (C/Python) READMEs
+- ✅ **API Specification Sync**: 최신 릴레이 엔드포인트 및 페이로드 규격 문서화 완료 / Documented latest relay endpoints and payload specifications
+
 ---
 
 **Rheehose (Rhee Creative) 2008-2026**
