@@ -398,7 +398,11 @@ size_t StreamCallback(void *contents, size_t size, size_t nmemb, void *userp) {
             
             cJSON *json = cJSON_Parse(json_str);
             if (json) {
-                cJSON *choices = cJSON_GetObjectItemCaseSensitive(json, "choices");
+                // Check if wrapped in payload (for juni_relay SSE format)
+                cJSON *payload = cJSON_GetObjectItemCaseSensitive(json, "payload");
+                cJSON *data_to_parse = payload ? payload : json;
+                
+                cJSON *choices = cJSON_GetObjectItemCaseSensitive(data_to_parse, "choices");
                 if (cJSON_IsArray(choices)) {
                     cJSON *choice = cJSON_GetArrayItem(choices, 0);
                     cJSON *delta = cJSON_GetObjectItemCaseSensitive(choice, "delta");

@@ -1391,13 +1391,16 @@ class StudyAITerminal(QMainWindow):
                             if data == "[DONE]": break
                             try:
                                 parsed = json.loads(data)
-                                # Extract from payload wrapper for juni_relay
+                                # Extract from payload wrapper for juni_relay (if present)
+                                # SSE chunks might come unwrapped, so fallback to direct parse
                                 payload = parsed.get("payload", parsed)
                                 choices = payload.get("choices", [])
                                 if choices:
                                     content = choices[0].get("delta", {}).get("content", "")
                                     if content: self.signals.chunk_received.emit(content)
-                            except: pass
+                            except Exception as e:
+                                print(f"[DEBUG] Mistral parse error: {e}, data: {data[:100]}")
+                                pass
                             
             elif provider == "google":
                 # Google Gemini Relay Implementation / Google Gemini 중계 구현
@@ -1421,13 +1424,15 @@ class StudyAITerminal(QMainWindow):
                         try:
                             if line.startswith("data: "): line = line[6:]
                             parsed = json.loads(line)
-                            # Extract from payload wrapper for juni_relay
+                            # Extract from payload wrapper for juni_relay (if present)
                             payload = parsed.get("payload", parsed)
                             candidates = payload.get("candidates", [])
                             if candidates:
                                 content = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
                                 if content: self.signals.chunk_received.emit(content)
-                        except: pass
+                        except Exception as e:
+                            print(f"[DEBUG] Gemini parse error: {e}, line: {line[:100]}")
+                            pass
 
             self.signals.stream_finished.emit()
             
