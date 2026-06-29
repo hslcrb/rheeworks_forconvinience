@@ -39,6 +39,18 @@ from pynput import keyboard
 from tzlocal import get_localzone
 from datetime import datetime
 
+# Premium Color Palette / 프리미엄 컬러 팔레트
+COLORS = {
+    "bg": "#121212",
+    "card": "#1E1E1E",
+    "accent": "#F1C40F",
+    "accent_soft": "#F39C12",
+    "text": "#ECF0F1",
+    "secret": "#8B4513",
+    "success": "#2ECC71",
+    "danger": "#E74C3C"
+}
+
 # i18n Translations / 번역 정보
 TRANSLATIONS = {
     'ko': {

@@ -2,3 +2,4 @@ customtkinter
 pynput
 pillow
 packaging
+tzlocal

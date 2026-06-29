@@ -35,6 +35,17 @@ except ImportError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "customtkinter"])
     import customtkinter as ctk
 
+# Premium Color Palette / 프리미엄 컬러 팔레트
+COLORS = {
+    "bg": "#121212",
+    "card": "#1E1E1E",
+    "accent": "#F1C40F",
+    "secondary": "#F39C12",
+    "success": "#2ECC71",
+    "danger": "#E74C3C",
+    "text": "#ECF0F1"
+}
+
 # i18n Translations / 번역 정보
 TRANSLATIONS = {
     'ko': {

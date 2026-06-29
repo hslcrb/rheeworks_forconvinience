@@ -22,7 +22,6 @@ def get_system_lang():
     except:
         pass
     return 'en'
-from PIL import Image
 
 # i18n Translations / 번역 정보
 TRANSLATIONS = {

@@ -26,6 +26,9 @@ build/
 .DS_Store
 Thumbs.db
 
+# Binary files / 바이너리 파일
+studyaimv
+
 # Environment variables / 환경 변수
 .env
 .env.local
