@@ -75,6 +75,14 @@ const char *greetings[] = {
 #define GEMINI_API_URL "https://www.rheehose.com" "/api/ai/v1/juni/gemini/relay"
 #define MODEL_NAME "mistral-tiny"
 
+// Service Status / 서비스 상태
+#define SERVICE_SUSPENDED 1
+#define SERVICE_SUSPENDED_MSG \
+    "[NOTICE] StudyAI API 서비스가 일시 중단되었습니다.\n" \
+    "자세한 내용은 https://rheehose.com 을 확인해 주세요.\n\n" \
+    "[NOTICE] StudyAI API service is temporarily suspended.\n" \
+    "Please check https://rheehose.com for details."
+
 
 // UI Widgets
 GtkWidget *main_window;
@@ -574,6 +582,15 @@ gboolean completion_finished(gpointer data) {
 
 void *api_thread_func(void *data) {
     struct ThreadData *tdata = (struct ThreadData *)data;
+
+    if (SERVICE_SUSPENDED) {
+        g_idle_add(update_bot_message, strdup(SERVICE_SUSPENDED_MSG));
+        g_idle_add(completion_finished, NULL);
+        free(tdata->user_input);
+        free(tdata);
+        pthread_exit(NULL);
+    }
+
     CURL *curl = curl_easy_init();
     
     if(curl) {

@@ -54,6 +54,15 @@ MISTRAL_API_URL = "https://www.rheehose.com" + "/api/ai/v1/juni/mistral/relay"
 # Google Gemini API Configuration / Google Gemini API 설정
 GEMINI_API_URL = "https://www.rheehose.com" + "/api/ai/v1/juni/gemini/relay"
 
+# Service Status / 서비스 상태
+SERVICE_SUSPENDED = True
+SERVICE_SUSPENDED_MSG = (
+    "[NOTICE] StudyAI API 서비스가 일시 중단되었습니다.\\n"
+    "자세한 내용은 https://rheehose.com 을 확인해 주세요.\\n\\n"
+    "[NOTICE] StudyAI API service is temporarily suspended.\\n"
+    "Please check https://rheehose.com for details."
+)
+
 # Default Model / 기본 모델
 DEFAULT_MODEL = "mistral-tiny"
 MAX_TOKENS = 32000
@@ -1362,7 +1371,11 @@ class StudyAITerminal(QMainWindow):
     
     def api_call(self, user_input):
         """Make API call in background thread / 백그라운드 스레드에서 API 호출"""
-        # Capture model and provider at START to handle mid-request switches / 시작 시 모델과 제공자를 캡처하여 중간 전환 처리
+        if SERVICE_SUSPENDED:
+            self.signals.chunk_received.emit(SERVICE_SUSPENDED_MSG)
+            self.signals.stream_finished.emit()
+            return
+
         active_model = self.current_model
         provider = AVAILABLE_MODELS.get(active_model, "mistral")
         
