@@ -11,22 +11,22 @@
 This project is organized into the following sub-project series, each with its own virtual environment (`venv`) and dependencies.
 
 ### 1. Typer-타이퍼 Series
-- **[베이직 버전-Basic Version](file:///home/rheehose/문서/rheeworks_forconvinience/Utilities%20유틸리티/Typer-타이퍼%20Series/베이직%20버전-Basic%20Version/)**: 원천 텍스트 기반 가짜 타이핑 도구 (GUI/CLI)
-- **[포모도로 버전-Pomodoro Version](file:///home/rheehose/문서/rheeworks_forconvinience/Utilities%20유틸리티/Typer-타이퍼%20Series/포모도로%20버전-Pomodoro%20Version/)**: 포모도로 타이머 + 비밀 타이핑 콘솔 (GUI/CLI)
+- **[베이직 버전-Basic Version](./Utilities%20유틸리티/Typer-타이퍼%20Series/베이직%20버전-Basic%20Version/)**: 원천 텍스트 기반 가짜 타이핑 도구 (GUI/CLI)
+- **[포모도로 버전-Pomodoro Version](./Utilities%20유틸리티/Typer-타이퍼%20Series/포모도로%20버전-Pomodoro%20Version/)**: 포모도로 타이머 + 비밀 타이핑 콘솔 (GUI/CLI)
 
 ### 2. Rucia-루시아 Series
-- **[Pris-프리스](file:///home/rheehose/문서/rheeworks_forconvinience/Utilities%20유틸리티/Rucia-루시아%20Series/Pris-프리스/)**: 생산성 통계 대시보드 (GUI/CLI)
-- **[Lavendar-라벤다르](file:///home/rheehose/문서/rheeworks_forconvinience/Utilities%20유틸리티/Rucia-루시아%20Series/Lavendar-라벤다르/)**: 자동 파일 백업 도구 (GUI/CLI)
-- **[Frytesty-프라이테스티](file:///home/rheehose/문서/rheeworks_forconvinience/Utilities%20유틸리티/Rucia-루시아%20Series/Frytesty-프라이테스티/)**: 알고리즘 문제풀이 자동 테스트기 (GUI/CLI)
+- **[Pris-프리스](./Utilities%20유틸리티/Rucia-루시아%20Series/Pris-프리스/)**: 생산성 통계 대시보드 (GUI/CLI)
+- **[Lavendar-라벤다르](./Utilities%20유틸리티/Rucia-루시아%20Series/Lavendar-라벤다르/)**: 자동 파일 백업 도구 (GUI/CLI)
+- **[Frytesty-프라이테스티](./Utilities%20유틸리티/Rucia-루시아%20Series/Frytesty-프라이테스티/)**: 알고리즘 문제풀이 자동 테스트기 (GUI/CLI)
 
 ### 3. Automaker-오토메이커 Series
-- **[클리커-Clicker](file:///home/rheehose/문서/rheeworks_forconvinience/Utilities%20유틸리티/Automaker-오토메이커%20Series/클리커-Clicker/)**: 고성능 마우스 오토 클릭커 (GUI/CLI)
-- **[텍스트생성기-Text Generator](file:///home/rheehose/문서/rheeworks_forconvinience/Utilities%20유틸리티/Automaker-오토메이커%20Series/텍스트생성기-Text%20Generator/)**: 더미 텍스트 생성 도구 (GUI/CLI)
-- **[프로젝트 템플릿 생성-Project Template Generator](file:///home/rheehose/문서/rheeworks_forconvinience/Utilities%20유틸리티/Automaker-오토메이커%20Series/프로젝트%20템플릿%20생성-Generate%20Project%20Templates/)**: 다국어 스캐폴딩 도구 (GUI/CLI)
+- **[클리커-Clicker](./Utilities%20유틸리티/Automaker-오토메이커%20Series/클리커-Clicker/)**: 고성능 마우스 오토 클릭커 (GUI/CLI)
+- **[텍스트생성기-Text Generator](./Utilities%20유틸리티/Automaker-오토메이커%20Series/텍스트생성기-Text%20Generator/)**: 더미 텍스트 생성 도구 (GUI/CLI)
+- **[프로젝트 템플릿 생성-Project Template Generator](./Utilities%20유틸리티/Automaker-오토메이커%20Series/프로젝트%20템플릿%20생성-Generate%20Project%20Templates/)**: 다국어 스캐폴딩 도구 (GUI/CLI)
 
 ### 4. StudyAI Series
-- **[StudyAI - MV](file:///home/rheehose/문서/rheeworks_forconvinience/Utilities%20유틸리티/StudyAI%20-%20Series/StudyAI%20-%20MV/)**: AI 채팅 앱 C/GTK 버전 (Grayscale GUI)
-- **[StudyAI - MV - Python](file:///home/rheehose/문서/rheeworks_forconvinience/Utilities%20유틸리티/StudyAI%20-%20Series/StudyAI%20-%20MV%20-%20Python/)**: AI 채팅 앱 PySide6 터미널 스타일 GUI 버전 (Terminal-Style GUI)
+- **[StudyAI - MV](./Utilities%20유틸리티/StudyAI%20-%20Series/StudyAI%20-%20MV/)**: AI 채팅 앱 C/GTK 버전 (Grayscale GUI)
+- **[StudyAI - MV - Python](./Utilities%20유틸리티/StudyAI%20-%20Series/StudyAI%20-%20MV%20-%20Python/)**: AI 채팅 앱 PySide6 터미널 스타일 GUI 버전 (Terminal-Style GUI)
 
 ---
 
@@ -50,10 +50,10 @@ cd "Utilities 유틸리티/Typer-타이퍼 Series/베이직 버전-Basic Version
 
 ## 📜 가이드라인 / Guidelines
 
-- **에이전트 수칙**: [GEMINI.md](file:///home/rheehose/문서/rheeworks_forconvinience/GEMINI.md)
-- **API 이용 가이드**: [JUNI_AI_RELAY_GUIDE.md](file:///home/rheehose/문서/rheeworks_forconvinience/Utilities 유틸리티/StudyAI - Series/JUNI_AI_RELAY_GUIDE.md)
-- **기여 방법**: [CONTRIBUTING.md](file:///home/rheehose/문서/rheeworks_forconvinience/CONTRIBUTING.md)
-- **프로젝트 타임라인**: [TIMELINE.md](file:///home/rheehose/문서/rheeworks_forconvinience/TIMELINE.md)
+- **에이전트 수칙**: [GEMINI.md](./GEMINI.md)
+- **API 이용 가이드**: [JUNI_AI_RELAY_GUIDE.md](./Utilities%20유틸리티/StudyAI%20-%20Series/JUNI_AI_RELAY_GUIDE.md)
+- **기여 방법**: [CONTRIBUTING.md](./CONTRIBUTING.md)
+- **프로젝트 타임라인**: [TIMELINE.md](./TIMELINE.md)
 
 ---
 
